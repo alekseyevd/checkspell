@@ -3,13 +3,15 @@ import { IErrnoException } from './interfaces/IErrnoException'
 import { IRouting } from './interfaces/IRouting'
 import { URL } from "url"
 import path  from 'path'
-import fs from 'fs'
+import fs, { unlink } from 'fs'
 import formidable from 'formidable'
-import {Queue} from './Queue'
+import { Queue } from './Queue'
+import { Transform } from 'stream'
+import https from 'https'
  
 const port = 5000
 const queue = new Queue()
-let isBuisy = false
+
 
 
 const routing: IRouting = {
@@ -22,36 +24,11 @@ const routing: IRouting = {
     return res.end();
   },
   '/queue': (req, res) => {
-    res.end('sdf' + queue.size)
+    res.end(JSON.stringify(queue))
   },
   '/api/v1/fileupload': (req, res) => {
     const filePath = path.join(__dirname, `../temp`);
-    // const stream = fs.createWriteStream(filePath);
-  
-    // stream.on('open', () => req.pipe(stream))
 
-    // stream.on('close', () => {
-    //   // Send a success response back to the client
-    //   const msg = `Data uploaded to ${filePath}`;
-    //   console.log('Processing  ...  100%');
-    //   console.log(msg);
-    //   res.end(JSON.stringify({ status: 'success', msg }));
-    //  });
-     
-    //  stream.on('error', err => {
-    //   // Send an error message to the client
-    //   console.error(err);
-    //   res.end(JSON.stringify({ status: 'error', err }));
-    //  });
-
-    // const data: Array<Buffer> = [];
-    // req.on('data', chunk => {
-    //   data.push(chunk);
-    // });
-    // req.on('end', () => {
-    //   console.log('end :', Buffer.concat(data).toString())
-    //   res.end(JSON.stringify({ status: 'success' }));
-    // })
     var form = new formidable.IncomingForm({ uploadDir: filePath });
     form.parse(req, function (err, fields, files) {
       //res.write('File uploaded');
@@ -77,16 +54,29 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
 });
  
 server.listen(port, () => {
-  setInterval(() => {
+  let isBuisy: Boolean = false
+  setInterval(() => {   
     if (isBuisy) return
 
     if (queue.size > 0) {
       isBuisy = true
-      setTimeout(() => {
-        queue.pick()
+      checkSpell(queue).then(() => {
+        let item = queue.pick()
+        //unlink 
+        //console.log(item);
+        unlink(item.path, (err) => {
+          if (err) throw new Error('file was not deleted') 
+          console.log('file deleted');
+          
+        })
         isBuisy = false
-      }, 10000)
+      })
+      .catch(error => {
+        console.log(error);
+      })
     }
+    
+    
   }, 1000)
   console.log(`Server listening on port ${port}`)
 })
@@ -100,4 +90,65 @@ server.on('error', (error: IErrnoException) => {
 
 server.on('clientError', (err, socket) => {
   socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
-});
+})
+
+class CheckSpellStream extends Transform {
+  _transform(chunk: String, encoding: String, cb: Function) {
+      //asyncFunction(chunk, cb)
+      // setTimeout(() => {
+      //   this.push(chunk.toString().toUpperCase())
+      //   cb()
+      // }, 15000)
+      //console.log(chunk.toString());
+      
+      const options = {
+        hostname: 'speller.yandex.net',
+        path: encodeURI(`/services/spellservice.json/checkText?text=${chunk.toString()}`),
+        method: 'GET'
+      }
+      const req = https.request(options, res => {
+        console.log(`statusCode: ${res.statusCode}`)
+        let all_chunks: Array<Buffer> = [];
+        res.on('data', (chunk: any) =>  {
+          all_chunks.push(chunk);
+        });
+        res.on('end', () => {
+          //console.log('end');
+          let str = chunk.toString()
+          let response_body = Buffer.concat(all_chunks);
+          
+          let variants = JSON.parse(response_body.toString()).reverse()
+          variants.forEach((el: any) => {
+            str = str.substring(0, el.pos) + el.s[0] + str.substr(el.pos + el.len, str.length + 1)
+          });
+          
+          this.push(str.toUpperCase())
+          cb()
+        })
+      })
+      
+      req.on('error', error => {
+        console.error(error)
+      })
+      
+      req.write(chunk.toString())
+      req.end()
+
+  }
+}
+
+function checkSpell (queue: Queue) {
+  return new Promise((resolve) => {
+    let item = queue.first.item.path
+    //const ws = fs.createWriteStream(`file_${Date.now()}.txt`, 'utf8')
+    fs.createReadStream(item, { encoding: 'utf8', highWaterMark: 2 * 1024 })
+      .pipe(new CheckSpellStream())
+      .pipe(fs
+        .createWriteStream(`output/file_${Date.now()}.txt`, 'utf8')
+        .on('finish', () => {
+          console.log('Done');
+          resolve(true)
+        })
+      )
+  })
+}
