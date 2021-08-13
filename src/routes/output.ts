@@ -21,6 +21,7 @@ export default function outputRoute(req: IncomingMessage, res: ServerResponse) :
   }
 
   if (item.status === 'pending') return res.end(JSON.stringify({ status: 'pending' }))
+  if (item.status === 'error') return res.end(JSON.stringify({ status: 'error' }))
 
   const file = path.join(__dirname, '../../output', `${id}`)
   const stat = fs.statSync(file)

@@ -26,7 +26,9 @@ export class JobQueue extends Queue {
       if (this.size > 0) {
         this.setBuisy()
         const item = this.pick()
-        this.do(item).then(() => this.setFree())
+        this.do(item)
+          .then(() => this.setFree())
+          .catch(() => this.setFree())
       }
     }, 1000)
   }
