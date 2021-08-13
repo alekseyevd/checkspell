@@ -5,18 +5,12 @@ import { URL } from "url"
 import { queue } from './queue'
 import outputRoute from './routes/output'
 import fileuploadRoute from './routes/fileupload'
+import mainRoute from './routes/main'
  
 const port = process.env.NODE_ENV === 'production' ? 80 : 5000
 
 const routing: IRouting = {
-  // '/': (req, res) => {
-  //   res.writeHead(200, {'Content-Type': 'text/html'});
-  //   res.write('<form action="/api/v1/fileupload" method="post" enctype="multipart/form-data">');
-  //   res.write('<input type="file" name="filetoupload"><br>');
-  //   res.write('<input type="submit">');
-  //   res.write('</form>');
-  //   return res.end();
-  // },
+  '/': mainRoute,
   '/output/': outputRoute,
   '/api/v1/': fileuploadRoute
 }
