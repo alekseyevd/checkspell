@@ -2,7 +2,7 @@ import { createServer, IncomingMessage, ServerResponse } from 'http'
 import { IErrnoException } from './interfaces/IErrnoException'
 import { IRouting } from './interfaces/IRouting'
 import { URL } from "url"
-import { queue } from './queue'
+import { queue } from './Queue'
 import outputRoute from './routes/output'
 import fileuploadRoute from './routes/fileupload'
 import mainRoute from './routes/main'
