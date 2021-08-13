@@ -1,37 +1,12 @@
-export class Queue {
-  first: any
-  last: any
-  size: number
+import { db } from './db'
+import { JobQueue } from './classes/JobQueue'
+import checkSpellStream from './checkSpellStream'
 
-  constructor() {
-    this.first = null;
-    this.last = null;
-    this.size = 0
+export const queue = new JobQueue(async (item) => {
+  try {
+    await checkSpellStream(item)
+    db.update({ id: item.id, status: 'done'})
+  } catch (error) {
+    db.update({ id: item.id, status: 'error', message: error.message})
   }
-
-  put(item: any) {
-    const last = this.last;
-    const element = { next: null, item };
-    if (last) {
-      last.next = element;
-      this.last = element;
-    } else {
-      this.first = element;
-      this.last = element;
-    }
-    this.size++
-  }
-
-  pick() {
-    const element = this.first;
-    if (!element) return null;
-    if (this.last === element) {
-      this.first = null;
-      this.last = null;
-    } else {
-      this.first = element.next;
-    }
-    this.size--
-    return element.item;
-  }
-}
+})
