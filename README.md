@@ -26,3 +26,11 @@ RESPONSE SCHEMA: application/json; charset=utf-8
   status: 'pending'
 }
 ```
+or if there is an error while file reading/writing/changing
+
+RESPONSE SCHEMA: application/json; charset=utf-8
+```js
+{
+  status: 'error'
+}
+```
