@@ -11,7 +11,7 @@ RESPONSE SCHEMA: application/json; charset=utf-8
   data: <taskId>
 }
 ```
-If respons.result is true, you can use <taskId> to know task's status. Just make a request to /output/?id=<taskId>
+If response.result is true, you can use taskId to know task's status. Just make a request to /output/?id=taskId
 ```
 GET /output/?id=<taskId>
 ```
