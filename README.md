@@ -1,4 +1,5 @@
 Send file to server
+
 REQUEST BODY SCHEMA: multipart/form-data
 ```
 POST /api/v1/
@@ -16,7 +17,9 @@ GET /output/?id=<taskId>
 ```
 
 RESPONSE SCHEMA: text/plain; charset=utf-8
+
 or if task is in queue
+
 RESPONSE SCHEMA: application/json; charset=utf-8
 ```js
 {
