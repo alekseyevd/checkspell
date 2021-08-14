@@ -1,4 +1,4 @@
-export class Queue {
+export default class Queue {
   first: any
   last: any
   size: number

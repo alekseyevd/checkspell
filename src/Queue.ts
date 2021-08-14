@@ -1,12 +1,13 @@
 import { db } from './db'
-import { JobQueue } from './classes/JobQueue'
+import JobQueue from './classes/JobQueue'
 import checkSpellStream from './checkSpellStream'
+import ITask from './interfaces/ITask'
 
-export const queue = new JobQueue(async (item) => {
+export const queue = new JobQueue(async (task: ITask) => {
   try {
-    await checkSpellStream(item)
-    db.update({ id: item.id, status: 'done'})
+    await checkSpellStream(task)
+    db.update({ id: task.id, status: 'done'})
   } catch (error) {
-    db.update({ id: item.id, status: 'error', message: error.message})
+    db.update({ id: task.id, status: 'error', message: error.message})
   }
 })

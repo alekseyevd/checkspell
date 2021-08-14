@@ -2,7 +2,7 @@ import { IncomingMessage, ServerResponse } from 'http'
 import fs from 'fs'
 import { db } from '../db'
 import { IncomingForm } from 'formidable'
-import { queue } from '../queue'
+import { queue } from '../Queue'
 
 export default function fileuploadRoute(req: IncomingMessage, res: ServerResponse) : void {
   const form = new IncomingForm({ uploadDir: 'temp' })
@@ -39,3 +39,4 @@ export default function fileuploadRoute(req: IncomingMessage, res: ServerRespons
     }
   })
 }
+

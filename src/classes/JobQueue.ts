@@ -1,6 +1,6 @@
-import { Queue } from "./Queue"
+import Queue from "./Queue"
 
-export class JobQueue extends Queue {
+export default class JobQueue extends Queue {
   isBuisy: Boolean
 
   constructor(callback: (arg: any) => Promise<any>) {
@@ -9,7 +9,7 @@ export class JobQueue extends Queue {
     this.do = callback.bind(this)
   }
 
-  async do(item: any): Promise<any> {}
+  async do(task: any): Promise<any> {}
 
   setBuisy() {
     this.isBuisy = true
@@ -25,8 +25,8 @@ export class JobQueue extends Queue {
 
       if (this.size > 0) {
         this.setBuisy()
-        const item = this.pick()
-        this.do(item)
+        const task = this.pick()
+        this.do(task)
           .then(() => this.setFree())
           .catch(() => this.setFree())
       }

@@ -1,4 +1,4 @@
-export interface IErrnoException extends Error {
+export default interface IErrnoException extends Error {
   errno?: number;
   code?: string;
   path?: string;

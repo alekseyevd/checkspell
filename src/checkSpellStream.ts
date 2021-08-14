@@ -1,11 +1,11 @@
 import fs from 'fs'
 import YaSpellTransform from './classes/YaSpellTransform'
-import { IItem } from './interfaces/IItem'
+import ITask from './interfaces/ITask'
 
-export default function checkSpellStream (item: IItem) : Promise<Boolean> {
+export default function checkSpellStream (task: ITask) : Promise<Boolean> {
   return new Promise((resolve, reject) => {
-    let filepath = item.path
-    let id = item.id
+    let filepath = task.path
+    let id = task.id
 
     fs.createReadStream(filepath, { encoding: 'utf8', highWaterMark: 2 * 1024 })
       .on('error', (error) => {
