@@ -5,10 +5,9 @@ import ITask from './interfaces/ITask'
 
 export default function checkSpellStream (task: ITask) : Promise<Boolean> {
   return new Promise((resolve, reject) => {
-    let filepath = task.path
-    let id = task.id
+    const { path, id } = task
 
-    fs.createReadStream(filepath, { encoding: 'utf8', highWaterMark: 2 * 1024 })
+    fs.createReadStream(path, { encoding: 'utf8', highWaterMark: 2 * 1024 })
       .on('error', (error) => {
         reject(error)
       })
@@ -23,7 +22,7 @@ export default function checkSpellStream (task: ITask) : Promise<Boolean> {
         reject(error)
       })
       .on('finish', () => {
-        fs.unlink(filepath, (error) => {
+        fs.unlink(path, (error) => {
           if (error) console.log(error.message)
         })
         resolve(true)
