@@ -3,11 +3,12 @@ import fs from 'fs'
 import { db } from '../db'
 import { IncomingForm } from 'formidable'
 import { queue } from '../Queue'
+import { TEMP_DIR } from '../config'
 
 export default function fileuploadRoute(req: IncomingMessage, res: ServerResponse) : void {
-  const form = new IncomingForm({ uploadDir: 'temp' })
+  const form = new IncomingForm({ uploadDir: TEMP_DIR })
 
-  form.on('file', function(name, file) {
+  form.on('file', function(_, file) {
     if (file.type !== 'text/plain') {
       fs.unlink(file.path, (error) => {
         if (error) console.log('file not deleted')

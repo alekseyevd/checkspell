@@ -1,5 +1,6 @@
 import fs from 'fs'
 import YaSpellTransform from './classes/YaSpellTransform'
+import { OUTPUT_DIR } from './config'
 import ITask from './interfaces/ITask'
 
 export default function checkSpellStream (task: ITask) : Promise<Boolean> {
@@ -16,7 +17,7 @@ export default function checkSpellStream (task: ITask) : Promise<Boolean> {
         reject(error)
       })
       .pipe(fs
-        .createWriteStream(`output/${id}`, 'utf8')
+        .createWriteStream(`${OUTPUT_DIR}/${id}`, 'utf8')
       )
       .on('error', (error) => {
         reject(error)

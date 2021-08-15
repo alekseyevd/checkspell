@@ -31,6 +31,6 @@ export default function outputRoute(req: IncomingMessage, res: ServerResponse) :
       'Content-Disposition': `attachment; filename="${item.filename}"`
   });
 
-  const readStream = fs.createReadStream(file, 'utf8');
+  const readStream = fs.createReadStream(file, 'utf8')
   readStream.pipe(res)
 }
