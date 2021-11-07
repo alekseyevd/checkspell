@@ -19,6 +19,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "formidable": "^1.2.2"
+    "formidable": "^1.2.2",
+    "safe-regex": "^2.1.1"
   }
 }
