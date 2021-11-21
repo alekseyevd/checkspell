@@ -22,8 +22,9 @@ const app = createServer((req: IncomingMessage, res: ServerResponse) => {
       res.end('not found')
       return
     } 
-
+    
     const params = path.match(route.path)?.slice(1) || []
+    console.log(route);
 
     const acc : { [key: string]: string; } = {}
     for (let i = 0; i < route.params.length; i++) {

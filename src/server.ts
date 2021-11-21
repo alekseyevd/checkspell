@@ -13,7 +13,7 @@ import { queue } from "./Queue"
       console.log(`Server listening on port ${PORT}`)
     })
   } catch (error) {
-    console.log(error.message)
+    console.log(error)
     process.exit()
   }
 })()
