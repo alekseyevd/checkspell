@@ -11,9 +11,7 @@ const app = createServer((req: IncomingMessage, res: ServerResponse) => {
     const path = url.pathname
     const method = req.method ? req.method.toLowerCase() : 'get'
   
-    const route = routes.find(r => {
-      //path.match(r.path)
-      //return r.path === path && r.method === method      
+    const route = routes.find(r => {    
       return r.method === method && r.path.test(path)
     })
   
@@ -23,14 +21,27 @@ const app = createServer((req: IncomingMessage, res: ServerResponse) => {
       return
     } 
     
-    const params = path.match(route.path)?.slice(1) || []
-    console.log(route);
+    const values = path.match(route.path)?.slice(1) || []
 
-    const acc : { [key: string]: string; } = {}
+    const params : { [key: string]: string | number; } = {}
     for (let i = 0; i < route.params.length; i++) {
-      acc[route.params[i]] = params[i]
+      params[route.params[i]] = isNaN(+values[i]) ? values[i] : +values[i]
     }
-    console.log('params', acc);
+    
+    //to-do validate params, payload, query
+    const queryParams: { [key: string]: any } = {}
+    url.searchParams.forEach((value, key) => {
+      let decodedKey = decodeURIComponent(key)
+      let decodedValue = decodeURIComponent(value)
+      if (decodedKey.endsWith('[]')) {
+        decodedKey = decodedKey.replace("[]", "");
+        queryParams[decodedKey] || (queryParams[decodedKey] = [])
+        queryParams[decodedKey].push(decodedValue)
+      } else {
+        queryParams[decodedKey] = decodedValue
+      }
+    })
+    console.log(queryParams);
     
     
     route.action(req, res)
