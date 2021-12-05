@@ -1,7 +1,14 @@
-import { IncomingMessage, ServerResponse } from 'http'
+import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
+
+export type Context = {
+  body: Buffer,
+  params: Object,
+  queryParams: Object,
+  headers: IncomingHttpHeaders
+}
 
 export default interface IRoute {
   method: string,
   path: string,
-  action: (req: IncomingMessage, res: ServerResponse) => void
+  action: (context: Context) => Promise<any>
 }
