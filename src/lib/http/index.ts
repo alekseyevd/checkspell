@@ -51,7 +51,7 @@ export default class HttpServer {
   
     req.on('end', async () => {
       try {
-        const body = Buffer.concat(chuncks)
+        let body
         const values = path.match(route.path)?.slice(1) || []
     
         const params : { [key: string]: string | number; } = {}
@@ -73,7 +73,20 @@ export default class HttpServer {
           }
         })
           
-        //to-do realize body-parser
+        //to-do realize body parser
+        const contentType = req.headers['content-type']?.split(';')[0];
+        switch (contentType) {
+          case 'application/json':
+            body = JSON.parse(Buffer.concat(chuncks).toString())
+            break;
+
+            case 'application/xml':
+              // TODO xml parser
+              break
+          default:
+            break;
+        }
+
         const context = {
           body,
           params,
@@ -84,7 +97,7 @@ export default class HttpServer {
         // to-do validate context
     
         const result = await route.action(context)
-        res.end(result)
+        res.end(JSON.stringify(result))
       } catch (error) {
         // to-do error-handler
         res.statusCode = 500

@@ -9,9 +9,14 @@ const routes: Array<IRoute> = [
   // { method: 'post', path: '/api/v1/', action: fileuploadRoute },
   // { method: 'get', path: '/output/', action: outputRoute },
   { 
-    method: 'get',
+    method: 'post',
     path: '/test/{id}',
     action: testRoute,
+    options: {
+      validate: {
+        query: 'nn'
+      }
+    }
   }
 ]
 export default routes

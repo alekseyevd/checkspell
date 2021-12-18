@@ -11,4 +11,5 @@ export default interface IRoute {
   method: string,
   path: string,
   action: (context: Context) => Promise<any>
+  options?: any
 }

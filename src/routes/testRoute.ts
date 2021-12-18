@@ -5,7 +5,7 @@ export default function testRoute (context: Context) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       console.log(context);
-      resolve('test')
+      resolve(context)
     }, 0)
   })
 }
