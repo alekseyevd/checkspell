@@ -1,6 +1,8 @@
 import { createServer, IncomingMessage, RequestListener, Server, ServerResponse } from 'http'
+import formidable from 'formidable'
 import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
+
 
 export default class HttpServer {
   private _routes: Array<any>
@@ -20,7 +22,9 @@ export default class HttpServer {
           console.log(`No access to port`)
         }
       }).on('clientError', (err, socket) => {
-        socket.end('HTTP/1.1 400 Bad Request')
+        console.log(socket);
+        
+        //socket.end('HTTP/1.1 400 Bad Request')
       })
   }
 
@@ -38,71 +42,45 @@ export default class HttpServer {
       res.end('not found')
       return
     } 
-   
-    const chuncks: Array<Buffer> = [];
-    req.on('error' , (err) => {
-      console.log(err);
-      res.end('enderreor')
-    })
-  
-    req.on('data', (chunk) => {
-      chuncks.push(chunk)
-    })
-  
-    req.on('end', async () => {
-      try {
-        let body
-        const values = path.match(route.path)?.slice(1) || []
-    
-        const params : { [key: string]: string | number; } = {}
-        for (let i = 0; i < route.params.length; i++) {
-          //params[route.params[i]] = isNaN(+values[i]) ? values[i] : +values[i]
-          params[route.params[i]] = values[i]
-        }
-        
-        const queryParams: { [key: string]: any } = {}
-        url.searchParams.forEach((value, key) => {
-          let decodedKey = decodeURIComponent(key)
-          let decodedValue = decodeURIComponent(value)
-          if (decodedKey.endsWith('[]')) {
-            decodedKey = decodedKey.replace("[]", "");
-            queryParams[decodedKey] || (queryParams[decodedKey] = [])
-            queryParams[decodedKey].push(decodedValue)
-          } else {
-            queryParams[decodedKey] = decodedValue
-          }
-        })
-          
-        //to-do realize body parser
-        const contentType = req.headers['content-type']?.split(';')[0];
-        switch (contentType) {
-          case 'application/json':
-            body = JSON.parse(Buffer.concat(chuncks).toString())
-            break;
 
-            case 'application/xml':
-              // TODO xml parser
-              break
-          default:
-            break;
-        }
-
-        const context = {
-          body,
-          params,
-          queryParams,
-          headers: req.headers
-        }
-  
-        // to-do validate context
-    
-        const result = await route.action(context)
-        res.end(JSON.stringify(result))
-      } catch (error) {
-        // to-do error-handler
-        res.statusCode = 500
-        res.end(JSON.stringify({ message: error.message }))
+    const form = formidable()
+    form.parse(req, async (error, fields, files) => {
+      if (error) {  
+        res.statusCode = 400
+        res.end(JSON.stringify({ result: false, message: error.message}))
       }
+      const values = path.match(route.path)?.slice(1) || []
+    
+      const params : { [key: string]: string | number; } = {}
+      for (let i = 0; i < route.params.length; i++) {
+        //params[route.params[i]] = isNaN(+values[i]) ? values[i] : +values[i]
+        params[route.params[i]] = values[i]
+      }
+      
+      const queryParams: { [key: string]: any } = {}
+      url.searchParams.forEach((value, key) => {
+        let decodedKey = decodeURIComponent(key)
+        let decodedValue = decodeURIComponent(value)
+        if (decodedKey.endsWith('[]')) {
+          decodedKey = decodedKey.replace("[]", "");
+          queryParams[decodedKey] || (queryParams[decodedKey] = [])
+          queryParams[decodedKey].push(decodedValue)
+        } else {
+          queryParams[decodedKey] = decodedValue
+        }
+      })
+      
+      const context = {
+        body: fields,
+        files,
+        params,
+        queryParams,
+        headers: req.headers
+      }
+
+      // to-do validate context
+      const result = await route.action(context)
+      res.end(JSON.stringify(result))
     })
   }
 
