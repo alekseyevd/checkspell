@@ -62,7 +62,7 @@ export default class HttpServer {
         let decodedKey = decodeURIComponent(key)
         let decodedValue = decodeURIComponent(value)
         if (decodedKey.endsWith('[]')) {
-          decodedKey = decodedKey.replace("[]", "");
+          decodedKey = decodedKey.replace("[]", "")
           queryParams[decodedKey] || (queryParams[decodedKey] = [])
           queryParams[decodedKey].push(decodedValue)
         } else {
@@ -79,6 +79,8 @@ export default class HttpServer {
       }
 
       // to-do validate context
+      route.validate(context)
+
       const result = await route.action(context)
       res.end(JSON.stringify(result))
     })

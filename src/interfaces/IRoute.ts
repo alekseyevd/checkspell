@@ -1,7 +1,8 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
 
 export type Context = {
-  body: Buffer,
+  body: Object,
+  files: Object,
   params: Object,
   queryParams: Object,
   headers: IncomingHttpHeaders
