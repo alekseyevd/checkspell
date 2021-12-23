@@ -1,14 +1,27 @@
-import { createServer, IncomingMessage, RequestListener, Server, ServerResponse } from 'http'
+import { createServer, IncomingHttpHeaders, IncomingMessage, RequestListener, Server, ServerResponse } from 'http'
 import formidable from 'formidable'
 import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
 
+interface IAuthenticate { 
+  (params: { body: any, headers: IncomingHttpHeaders}) : Promise<object | undefined>
+}
+
+interface IAuthorize {
+  (user: any, route: any) : boolean
+}
 
 export default class HttpServer {
   private _routes: Array<any>
   private _server: Server
+  private _authenticate: IAuthenticate
+  private _authorize: IAuthorize
 
-  constructor(routes: Array<IRoute>) {
+  constructor(
+    routes: Array<IRoute>,
+    authenticate: IAuthenticate = async () => undefined,
+    authorize: IAuthorize
+  ) {
     this._routes = routes.map(route => {
       return { 
         ...route,
@@ -16,16 +29,20 @@ export default class HttpServer {
         params: route.path.match(/\{[^\s/]+\}/g)?.map(k => k.slice(1, -1)) || []
       }
     })
+
+    this._authenticate = authenticate.bind(this)
+    this._authorize = authorize.bind(this)
+
     this._server = createServer(this._listener.bind(this))
-      .on('error', (error: IErrnoException) => {
-        if (error.code === 'EACCES') {
-          console.log(`No access to port`)
-        }
-      }).on('clientError', (err, socket) => {
-        console.log(socket);
-        
-        //socket.end('HTTP/1.1 400 Bad Request')
-      })
+    .on('error', (error: IErrnoException) => {
+      if (error.code === 'EACCES') {
+        console.log(`No access to port`)
+      }
+    }).on('clientError', (err, socket) => {
+      console.log(socket);
+      
+      //socket.end('HTTP/1.1 400 Bad Request')
+    })
   }
 
   private _listener(req: IncomingMessage, res: ServerResponse) {
@@ -70,23 +87,41 @@ export default class HttpServer {
         }
       })
       
-      const context = {
-        body: fields,
-        files,
-        params,
-        queryParams,
-        headers: req.headers
+      try {
+        //TODO Authenticate
+        const user = await this._authenticate({ body: { ...fields }, headers: req.headers })
+
+        const isUserHasAccessToRoute = this._authorize(user, route.params)
+        if (!isUserHasAccessToRoute) throw new Error('403')
+
+        const context = {
+          body: fields,
+          files,
+          params,
+          queryParams,
+          headers: req.headers,
+          user
+        }
+
+        this.validate(context, route.params)
+
+        const result = await route.action(context)
+        res.end(JSON.stringify(result))
+      } catch (error) {
+        //TODO handle error
+        res.statusCode = 500
+        res.end(JSON.stringify({ message: error.message }))
       }
-
-      // to-do validate context
-      route.validate(context)
-
-      const result = await route.action(context)
-      res.end(JSON.stringify(result))
     })
   }
 
   public listen(...args: any) {
     this._server.listen(...args)
   }
+
+  useValidation(fn: () => void) {
+    this.validate = fn
+  }
+
+  validate(context: any, params: any) {}
 }
