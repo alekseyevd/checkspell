@@ -11,6 +11,10 @@ interface IAuthorize {
   (user: any, route: any) : boolean
 }
 
+interface IValidate {
+  (context: any, route: any) : boolean
+}
+
 type HttpServerOptions = {
   routes: Array<IRoute>,
   port: number,
@@ -21,8 +25,9 @@ type HttpServerOptions = {
 export default class HttpServer {
   private _routes: Array<any>
   private _server: Server
-  private _authenticate: IAuthenticate
-  private _authorize: IAuthorize
+  private _authenticate: IAuthenticate | undefined
+  private _authorize: IAuthorize | undefined
+  private _validate: IValidate | undefined
   private port: number
 
   constructor(params: HttpServerOptions) {
@@ -35,8 +40,8 @@ export default class HttpServer {
     })
 
     this.port = params.port
-    this._authenticate = params.authenticate?.bind(this) || async function () { return undefined }
-    this._authorize = params.authorize?.bind(this)
+    // this._authenticate = params.authenticate?.bind(this) || async function () { return undefined }
+    // this._authorize = params.authorize?.bind(this)
 
     this._server = createServer(this._listener.bind(this))
     .on('error', (error: IErrnoException) => {
@@ -93,10 +98,14 @@ export default class HttpServer {
       })
       
       try {
-        //TODO Authenticate
-        const user = await this._authenticate({ body: { ...fields }, headers: req.headers })
+        const user = this._authenticate
+          ? await this._authenticate({ body: { ...fields }, headers: req.headers })
+          : undefined
 
-        const isUserHasAccessToRoute = this._authorize(user, route.options)
+        const isUserHasAccessToRoute = this._authorize
+          ? this._authorize(user, route.options)
+          : true
+
         if (!isUserHasAccessToRoute) throw new Error('403')
 
         const context = {
@@ -108,6 +117,7 @@ export default class HttpServer {
           user
         }
 
+        //todo validate
         this.validate(context, route.options)
 
         const result = await route.action(context)
@@ -124,11 +134,19 @@ export default class HttpServer {
     this._server.listen(this.port, ...args)
   }
 
-  useValidation(fn: () => void) {
-    this.validate = fn
+  // private async _authenticate(params: { body: any, headers: IncomingHttpHeaders}): Promise<object | undefined> {
+  //   return undefined
+  // }
+
+  public useAuth(fn: IAuthenticate) {
+    this._authenticate = fn
   }
 
-  useAuthentication()
+  public useAccessControl(fn: IAuthorize) {
+    this._authorize = fn
+  }
 
-  validate(context: any, params: any) {}
+  public useValidation(fn: IValidate) {
+    this._validate = fn
+  }
 }
