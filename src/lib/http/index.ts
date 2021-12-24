@@ -11,18 +11,22 @@ interface IAuthorize {
   (user: any, route: any) : boolean
 }
 
+type HttpServerOptions = {
+  routes: Array<IRoute>,
+  port: number,
+  authenticate?: IAuthenticate,
+  authorize?: IAuthorize
+}
+
 export default class HttpServer {
   private _routes: Array<any>
   private _server: Server
   private _authenticate: IAuthenticate
   private _authorize: IAuthorize
+  private port: number
 
-  constructor(
-    routes: Array<IRoute>,
-    authenticate: IAuthenticate = async () => undefined,
-    authorize: IAuthorize
-  ) {
-    this._routes = routes.map(route => {
+  constructor(params: HttpServerOptions) {
+    this._routes = params.routes.map(route => {
       return { 
         ...route,
         path: new RegExp("^" + route.path.replace(/\{[^\s/]+\}/g, '([\\w-]+)') + "$"),
@@ -30,8 +34,9 @@ export default class HttpServer {
       }
     })
 
-    this._authenticate = authenticate.bind(this)
-    this._authorize = authorize.bind(this)
+    this.port = params.port
+    this._authenticate = params.authenticate?.bind(this) || async function () { return undefined }
+    this._authorize = params.authorize?.bind(this)
 
     this._server = createServer(this._listener.bind(this))
     .on('error', (error: IErrnoException) => {
@@ -91,7 +96,7 @@ export default class HttpServer {
         //TODO Authenticate
         const user = await this._authenticate({ body: { ...fields }, headers: req.headers })
 
-        const isUserHasAccessToRoute = this._authorize(user, route.params)
+        const isUserHasAccessToRoute = this._authorize(user, route.options)
         if (!isUserHasAccessToRoute) throw new Error('403')
 
         const context = {
@@ -103,7 +108,7 @@ export default class HttpServer {
           user
         }
 
-        this.validate(context, route.params)
+        this.validate(context, route.options)
 
         const result = await route.action(context)
         res.end(JSON.stringify(result))
@@ -116,12 +121,14 @@ export default class HttpServer {
   }
 
   public listen(...args: any) {
-    this._server.listen(...args)
+    this._server.listen(this.port, ...args)
   }
 
   useValidation(fn: () => void) {
     this.validate = fn
   }
+
+  useAuthentication()
 
   validate(context: any, params: any) {}
 }
