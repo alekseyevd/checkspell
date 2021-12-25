@@ -1,11 +1,12 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
 
 export type Context = {
-  body: Object,
-  files: Object,
-  params: Object,
-  queryParams: Object,
-  headers: IncomingHttpHeaders
+  body: object,
+  files: object,
+  params: object,
+  queryParams: object,
+  headers: IncomingHttpHeaders,
+  user: object | undefined
 }
 
 export default interface IRoute {
