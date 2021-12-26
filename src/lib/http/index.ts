@@ -2,7 +2,6 @@ import { createServer, IncomingHttpHeaders, IncomingMessage, RequestListener, Se
 import fs from 'fs'
 import { join } from 'path'
 import formidable from 'formidable'
-import { Server as FileServer } from 'node-static'
 import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
 import { Context } from '../../interfaces/IRoute'
@@ -65,7 +64,7 @@ export default class HttpServer {
   private async _listener(req: IncomingMessage, res: ServerResponse) {
    // console.log(req.url);
     if (this._static && req.url?.startsWith(`/${this._static.alias}`)) {
-      //to-do check if file exists
+      //to-do check if file exists?
       var stream = fs.createReadStream(join(this._static.dir, req.url.replace(this._static.alias, '')))
       stream.on('error', function() {
           res.writeHead(404);
