@@ -70,7 +70,8 @@ export default class HttpServer {
           res.writeHead(404);
           res.end();
       });
-      //to-do res cache header
+      //to-do mime type
+      res.setHeader('Content-Type', 'text/html')
       res.setHeader('Cache-Control', 'max-age=3600')
       stream.pipe(res);
       return
