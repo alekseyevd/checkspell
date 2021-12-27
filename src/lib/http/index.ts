@@ -6,6 +6,7 @@ import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
 import { Context } from '../../interfaces/IRoute'
 import mimeTypes from './mime.types.json'
+import FileServer from './static'
 
 interface IAuthenticate { 
   (headers: IncomingHttpHeaders) : Promise<object | undefined>
@@ -22,11 +23,7 @@ interface IValidate {
 type HttpServerOptions = {
   routes: Array<IRoute>,
   port: number,
-  static?: {
-    dir: string,
-    alias?: string,
-    cache?: number
-  }
+  static?: FileServer
 }
 
 function extractMime(types: { [key: string] : string }, key: string | undefined) :string | undefined {
@@ -37,7 +34,7 @@ function extractMime(types: { [key: string] : string }, key: string | undefined)
 export default class HttpServer {
   private _routes: Array<any>
   private _server: Server
-  private _static: { dir: string, alias?: string, cache: number } | undefined
+  private _static?: FileServer
   private _authenticate: IAuthenticate | undefined
   private _authorize: IAuthorize | undefined
   private _validate: IValidate | undefined
@@ -54,11 +51,7 @@ export default class HttpServer {
 
     this.port = params.port
 
-    this._static = params.static ?
-      {
-        ...params.static,
-        cache: params.static.cache || 0
-      } : undefined
+    this._static = params.static
 
     this._server = createServer(this._listener.bind(this))
       .on('error', (error: IErrnoException) => {
@@ -83,29 +76,8 @@ export default class HttpServer {
     })
   
     if (!route) {
-      if (this._static && req.url) {
-        if (this._static.alias && !req.url.startsWith(`/${this._static.alias}/`)) {
-          res.statusCode = 404
-          res.end('not found')
-          return
-        }
-        const _url = this._static.alias
-          ? req.url.replace(this._static.alias, '')
-          : req.url
-
-        const fileName = join(this._static.dir, _url)
-        const stream = fs.createReadStream(fileName)
-        stream.on('error', function() {
-            res.writeHead(404);
-            res.end();
-        });
-        //to-do mime type
-        const ext = fileName.split('.').pop()
-        const mimeType = extractMime(mimeTypes, ext) || 'application/octet-stream'
-  
-        res.setHeader('Content-Type', mimeType)
-        res.setHeader('Cache-Control', `max-age=${this._static.cache || 0}`)
-        stream.pipe(res);
+      if (this._static) {
+        this._static.serveFiles(req, res)
         return
       }
       

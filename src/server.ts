@@ -4,14 +4,15 @@ import { queue } from "./Queue"
 import HttpServer from './lib/http'
 import routes from "./routes"
 import path from 'path'
+import FileServer from './lib/http/static'
 
 const server = new HttpServer({
   routes,
   port: PORT,
-  static: {
+  static: new FileServer({
     dir: path.join(__dirname, './public'),
     alias: 'static'
-  }
+  })
 });
 
 (async () => {

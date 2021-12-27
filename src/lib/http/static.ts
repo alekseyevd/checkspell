@@ -8,7 +8,7 @@ function extractMime(types: { [key: string] : string }, key: string | undefined)
   return types[key]
 }
 
-export class FileServer {
+export default class FileServer {
   private dir: string
   private alias?: string
   private cache: number
@@ -25,9 +25,11 @@ export class FileServer {
       res.end('not found')
       return
     }
-    const _url = this.alias
+    let _url = this.alias && req.url
       ? req.url.replace(this.alias, '')
-      : req.url
+      : req.url || '/'
+    
+    if (_url.endsWith('/')) _url += 'index.html'
   
     const fileName = path.join(this.dir, _url)
     const stream = fs.createReadStream(fileName)
