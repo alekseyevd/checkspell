@@ -1,10 +1,11 @@
-import { createServer, IncomingHttpHeaders, IncomingMessage, RequestListener, Server, ServerResponse } from 'http'
+import { createServer, IncomingHttpHeaders, IncomingMessage, Server, ServerResponse } from 'http'
 import fs from 'fs'
 import { join } from 'path'
 import formidable from 'formidable'
 import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
 import { Context } from '../../interfaces/IRoute'
+import mimeTypes from './mime.types.json'
 
 interface IAuthenticate { 
   (headers: IncomingHttpHeaders) : Promise<object | undefined>
@@ -23,14 +24,20 @@ type HttpServerOptions = {
   port: number,
   static?: {
     dir: string,
-    alias: string
+    alias?: string,
+    cache?: number
   }
+}
+
+function extractMime(types: { [key: string] : string }, key: string | undefined) :string | undefined {
+  if (!key) return undefined
+  return types[key]
 }
 
 export default class HttpServer {
   private _routes: Array<any>
   private _server: Server
-  private _static: { dir: string, alias: string } | undefined
+  private _static: { dir: string, alias?: string, cache: number } | undefined
   private _authenticate: IAuthenticate | undefined
   private _authorize: IAuthorize | undefined
   private _validate: IValidate | undefined
@@ -47,7 +54,11 @@ export default class HttpServer {
 
     this.port = params.port
 
-    this._static = params.static
+    this._static = params.static ?
+      {
+        ...params.static,
+        cache: params.static.cache || 0
+      } : undefined
 
     this._server = createServer(this._listener.bind(this))
       .on('error', (error: IErrnoException) => {
@@ -61,22 +72,7 @@ export default class HttpServer {
       })
   }
 
-  private async _listener(req: IncomingMessage, res: ServerResponse) {
-   // console.log(req.url);
-    if (this._static && req.url?.startsWith(`/${this._static.alias}`)) {
-      //to-do check if file exists?
-      var stream = fs.createReadStream(join(this._static.dir, req.url.replace(this._static.alias, '')))
-      stream.on('error', function() {
-          res.writeHead(404);
-          res.end();
-      });
-      //to-do mime type
-      res.setHeader('Content-Type', 'text/html')
-      res.setHeader('Cache-Control', 'max-age=3600')
-      stream.pipe(res);
-      return
-    }
-    
+  private async _listener(req: IncomingMessage, res: ServerResponse) { 
 
     const url = new URL(req.url || '/', `http://${req.headers.host}`)
     const path = url.pathname
@@ -87,6 +83,32 @@ export default class HttpServer {
     })
   
     if (!route) {
+      if (this._static && req.url) {
+        if (this._static.alias && !req.url.startsWith(`/${this._static.alias}/`)) {
+          res.statusCode = 404
+          res.end('not found')
+          return
+        }
+        const _url = this._static.alias
+          ? req.url.replace(this._static.alias, '')
+          : req.url
+
+        const fileName = join(this._static.dir, _url)
+        const stream = fs.createReadStream(fileName)
+        stream.on('error', function() {
+            res.writeHead(404);
+            res.end();
+        });
+        //to-do mime type
+        const ext = fileName.split('.').pop()
+        const mimeType = extractMime(mimeTypes, ext) || 'application/octet-stream'
+  
+        res.setHeader('Content-Type', mimeType)
+        res.setHeader('Cache-Control', `max-age=${this._static.cache || 0}`)
+        stream.pipe(res);
+        return
+      }
+      
       res.statusCode = 404
       res.end('not found')
       return
