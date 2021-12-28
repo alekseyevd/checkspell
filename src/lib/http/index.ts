@@ -1,11 +1,8 @@
 import { createServer, IncomingHttpHeaders, IncomingMessage, Server, ServerResponse } from 'http'
-import fs from 'fs'
-import { join } from 'path'
 import formidable from 'formidable'
 import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
 import { Context } from '../../interfaces/IRoute'
-import mimeTypes from './mime.types.json'
 import FileServer from './static'
 
 interface IAuthenticate { 
@@ -24,11 +21,6 @@ type HttpServerOptions = {
   routes: Array<IRoute>,
   port: number,
   static?: FileServer
-}
-
-function extractMime(types: { [key: string] : string }, key: string | undefined) :string | undefined {
-  if (!key) return undefined
-  return types[key]
 }
 
 export default class HttpServer {
@@ -128,6 +120,7 @@ export default class HttpServer {
       })
     
       const context: Context = {
+        url,
         body: fields,
         files,
         params,
@@ -147,7 +140,17 @@ export default class HttpServer {
 
       //todo define response content type by route options
       //res.setHeader('Content-Type', 'text/html');
+
+      //to do 
+      res.on('finish', () => {
+        console.log('log data');
+        
+      })
+      console.log(res.writableEnded);
+      
       res.end(JSON.stringify(result))
+      console.log(res.writableEnded);
+      
 
     } catch (error) {
         //TODO handle error

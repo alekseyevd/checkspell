@@ -1,4 +1,3 @@
-import { IncomingMessage, ServerResponse } from 'http'
 import { Context } from '../interfaces/IRoute'
 
 export default function testRoute (context: Context) {

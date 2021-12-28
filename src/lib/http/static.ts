@@ -1,12 +1,7 @@
 import { ServerResponse, IncomingMessage } from 'http'
 import path from 'path'
 import fs from 'fs'
-import mimeTypes from './mime.types.json'
-
-function extractMime(types: { [key: string] : string }, key: string | undefined) :string | undefined {
-  if (!key) return undefined
-  return types[key]
-}
+import mime from './mime'
 
 export default class FileServer {
   private dir: string
@@ -20,6 +15,12 @@ export default class FileServer {
   }
 
   serveFiles(req: IncomingMessage, res: ServerResponse): void {
+    if (req.method?.toLocaleLowerCase() !== 'get') {
+      res.statusCode = 405
+      res.end()
+      return
+    }
+  
     if (this.alias && req.url && !req.url.startsWith(`/${this.alias}/`)) {
       res.statusCode = 404
       res.end('not found')
@@ -39,7 +40,7 @@ export default class FileServer {
     });
     //to-do mime type
     const ext = fileName.split('.').pop()
-    const mimeType = extractMime(mimeTypes, ext) || 'application/octet-stream'
+    const mimeType = mime(ext)
   
     res.setHeader('Content-Type', mimeType)
     res.setHeader('Cache-Control', `max-age=${this.cache}`)
