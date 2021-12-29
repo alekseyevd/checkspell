@@ -1,10 +1,15 @@
 import { Context } from '../interfaces/IRoute'
+import YaSpellTransform from '../classes/YaSpellTransform'
 
-export default function testRoute (context: Context) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      //console.log(context);
-      resolve(context)
-    }, 0)
-  })
+export default async function testRoute (context: Context) {
+  // return new Promise((resolve, reject) => {
+  //   setTimeout(() => {
+  //     //console.log(context);
+  //     resolve(context)
+  //   }, 0)
+  // })
+  const stream = new YaSpellTransform()
+  console.log('stream', stream instanceof require("stream").Writable);
+  throw new Error('wtf')
+  
 }

@@ -5,7 +5,7 @@ import mainRoute from './routes/main'
 import testRoute from './routes/testRoute'
 
 const routes: Array<IRoute> = [
-  //{ method: 'get', path: '/', action: mainRoute},
+  { method: 'get', path: '/', action: mainRoute},
   // { method: 'post', path: '/api/v1/', action: fileuploadRoute },
   // { method: 'get', path: '/output/', action: outputRoute },
   { 

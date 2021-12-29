@@ -58,7 +58,9 @@ export default class HttpServer {
   }
 
   private async _listener(req: IncomingMessage, res: ServerResponse) { 
-
+    // res.on('finish', () => {
+    //   console.log('log data');
+    // })
     const url = new URL(req.url || '/', `http://${req.headers.host}`)
     const path = url.pathname
     const method = req.method ? req.method.toLowerCase() : 'get'
@@ -135,17 +137,15 @@ export default class HttpServer {
 
       //controller/handler
       const result = await route.action(context)
-
-      //route.view
+      //todo make available to set headears (context.setheaders)
+      //to-do check typeof result
+      //string -> html + view engine
+      //object = json.stringify
+      //steam - sream.pipe(res)
 
       //todo define response content type by route options
       //res.setHeader('Content-Type', 'text/html');
 
-      //to do 
-      res.on('finish', () => {
-        console.log('log data');
-        
-      })
       console.log(res.writableEnded);
       
       res.end(JSON.stringify(result))

@@ -11,7 +11,6 @@ const server = new HttpServer({
   port: PORT,
   static: new FileServer({
     dir: path.join(__dirname, './public'),
-    alias: 'static'
   })
 });
 
