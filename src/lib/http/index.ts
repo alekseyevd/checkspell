@@ -4,6 +4,7 @@ import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
 import { Context } from '../../interfaces/IRoute'
 import FileServer from './static'
+import stream from 'stream'
 
 interface IAuthenticate { 
   (headers: IncomingHttpHeaders) : Promise<object | undefined>
@@ -121,15 +122,15 @@ export default class HttpServer {
         }
       })
     
-      const context: Context = {
+      const context = new Context({
         url,
         body: fields,
-        files,
         params,
         queryParams,
         headers: req.headers,
-        user
-      }
+        user,
+        _res: res
+      })
 
       if (this._validate) {
         this._validate(context, route.options)
@@ -138,6 +139,26 @@ export default class HttpServer {
       //controller/handler
       const result = await route.action(context)
       //todo make available to set headears (context.setheaders)
+      switch (typeof result) {
+        case 'string':
+          return res.end(result)
+      
+        case 'number':
+          return res.end(result + '')
+
+        case 'object':   
+          if (result instanceof stream.Writable) {
+            return result.pipe(res)
+          } 
+
+          return JSON.stringify(result)
+
+        default:
+          // todo throw error
+          res.end()
+          break;
+      }
+
       //to-do check typeof result
       //string -> html + view engine
       //object = json.stringify
@@ -146,10 +167,10 @@ export default class HttpServer {
       //todo define response content type by route options
       //res.setHeader('Content-Type', 'text/html');
 
-      console.log(res.writableEnded);
+      // console.log(res.writableEnded);
       
-      res.end(JSON.stringify(result))
-      console.log(res.writableEnded);
+      // res.end(JSON.stringify(result))
+      // console.log(res.writableEnded);
       
 
     } catch (error) {

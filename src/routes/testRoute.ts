@@ -8,8 +8,9 @@ export default async function testRoute (context: Context) {
   //     resolve(context)
   //   }, 0)
   // })
-  const stream = new YaSpellTransform()
-  console.log('stream', stream instanceof require("stream").Writable);
-  throw new Error('wtf')
+  //const stream = new YaSpellTransform()
+  //console.log('stream', stream instanceof require("stream").Writable);
+  context
+  return 555
   
 }
