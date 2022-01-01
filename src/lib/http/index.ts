@@ -92,16 +92,6 @@ export default class HttpServer {
 
       if (!isUserHasAccessToRoute) throw new Error('403')
 
-      const { fields, files } = await new Promise((resolve, reject) => {
-        formidable().parse(req, (error, fields, files) => {
-          if (error) {
-            reject(error)
-            return
-          }
-          resolve({ fields, files})
-        })
-      })
-
       const values = path.match(route.path)?.slice(1) || []
       const params : { [key: string]: string | number; } = {}
       for (let i = 0; i < route.params.length; i++) {
@@ -109,27 +99,12 @@ export default class HttpServer {
         params[route.params[i]] = values[i]
       }
     
-      const queryParams: { [key: string]: any } = {}
-      url.searchParams.forEach((value, key) => {
-        let decodedKey = decodeURIComponent(key)
-        let decodedValue = decodeURIComponent(value)
-        if (decodedKey.endsWith('[]')) {
-          decodedKey = decodedKey.replace("[]", "")
-          queryParams[decodedKey] || (queryParams[decodedKey] = [])
-          queryParams[decodedKey].push(decodedValue)
-        } else {
-          queryParams[decodedKey] = decodedValue
-        }
-      })
-    
       const context = new Context({
         url,
-        body: fields,
         params,
-        queryParams,
-        headers: req.headers,
         user,
-        _res: res
+        res,
+        req
       })
 
       if (this._validate) {
@@ -151,7 +126,7 @@ export default class HttpServer {
             return result.pipe(res)
           } 
 
-          return JSON.stringify(result)
+          return res.end(JSON.stringify(result))
 
         default:
           // todo throw error

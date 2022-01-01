@@ -3,22 +3,14 @@ import formidable from 'formidable'
 
 export class Context {
   url: URL
-  body: object
-  private _files: object | undefined
-  private _body: object | undefined
   params: object
-  queryParams: object
-  headers: IncomingHttpHeaders
   user: object | undefined
   private _res: ServerResponse
   private _req: IncomingMessage
 
   constructor(params: any) {
     this.url = params.url
-    this.body = params.body
     this.params = params.params
-    this.queryParams = params.queryParams
-    this.headers = params.headers
     this.user = params.user
     this._res = params.res
     this._req = params.req
@@ -36,23 +28,62 @@ export class Context {
     return this._req
   }
 
-  get files() {
+  get body() {
     return (async () => {
-      if (!this._files) {
-        const { fields, files } = await new Promise((resolve, reject) => {
-          formidable().parse(this._req, (error, fields, files) => {
-            if (error) {
-              reject(error)
-              return
-            }
-            resolve({ fields, files})
-          })
+      const fileMeta: {[key:string] : any} = {}
+      let filesMeta: Array<any>
+      const form = formidable()
+      form.onPart = part => {
+        if (!part.filename) {
+          form.handlePart(part)
+          return
+        }
+        fileMeta[part.name] = {
+          fileName: part.filename,
+          type: part.mime,
+          buffer: []
+        }
+
+        part.on('data', function (buffer) {
+          fileMeta[part.name].buffer.push(buffer)
         })
-        this._files = files
-        this._body = fields
+        part.on('end', function () {
+          fileMeta[part.name].buffer = Buffer.concat(fileMeta[part.name].buffer)
+          filesMeta = Object.values(fileMeta)
+        })
       }
-      return this._files
+
+      const { fields, files } = await new Promise((resolve, reject) => {
+        form.parse(this._req, (error, fields) => {
+          if (error) {
+            reject(error)
+            return
+          }
+          resolve({ fields, files: filesMeta})
+        })
+      })
+      return { fields, files }
     })()
+  }
+
+  get headers() {
+    return this._req.headers
+  }
+
+  get query() {
+    const queryParams: { [key: string]: any } = {}
+    this.url.searchParams.forEach((value, key) => {
+      let decodedKey = decodeURIComponent(key)
+      let decodedValue = decodeURIComponent(value)
+      if (decodedKey.endsWith('[]')) {
+        decodedKey = decodedKey.replace("[]", "")
+        queryParams[decodedKey] || (queryParams[decodedKey] = [])
+        queryParams[decodedKey].push(decodedValue)
+      } else {
+        queryParams[decodedKey] = decodedValue
+      }
+    })
+    return queryParams
   }
 }
 

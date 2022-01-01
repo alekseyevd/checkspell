@@ -10,7 +10,9 @@ export default async function testRoute (context: Context) {
   // })
   //const stream = new YaSpellTransform()
   //console.log('stream', stream instanceof require("stream").Writable);
-  context
-  return 555
+  //Object.keys(context.files)
+
+  //context.files[key].buffer.toString()
+  return context.query
   
 }
