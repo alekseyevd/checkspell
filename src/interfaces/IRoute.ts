@@ -3,21 +3,25 @@ import formidable from 'formidable'
 
 export class Context {
   url: URL
-  params: object
-  user: object | undefined
+  private _path: string | RegExp
+  private _params: Array<string>
   private _res: ServerResponse
   private _req: IncomingMessage
 
   constructor(params: any) {
     this.url = params.url
-    this.params = params.params
-    this.user = params.user
+    this._path = params.path
+    this._params = params.params
     this._res = params.res
     this._req = params.req
   }
 
   write(str: string): void {
       this._res.write(str)
+  }
+
+  get method() {
+    return this._req.method ? this._req.method.toLowerCase() : 'get'
   }
 
   get res() {
@@ -84,6 +88,29 @@ export class Context {
       }
     })
     return queryParams
+  }
+
+  get params() {
+    const params : { [key: string]: string | number; } = {}
+    if (this._path instanceof RegExp) {
+      const values = this.url.pathname.match(this._path)?.slice(1) || []
+      
+      for (let i = 0; i < this._params.length; i++) {
+        //params[route.params[i]] = isNaN(+values[i]) ? values[i] : +values[i]
+        params[this._params[i]] = values[i]
+      }
+      return params
+    }
+
+    return params
+  }
+
+  toJSON() {
+    return {
+      params: this.params,
+      query: this.query,
+      method: this.method,
+    }
   }
 }
 

@@ -19,15 +19,6 @@ export default class FileServer {
       return
     }
   
-    // if (this.alias && req.url && !req.url.startsWith(`/${this.alias}/`)) {
-    //   res.statusCode = 404
-    //   res.end('not found')
-    //   return
-    // }
-
-    // let _url = this.alias && req.url
-    //   ? req.url.replace(this.alias, '')
-    //   : req.url || '/'
     const name = req.url.endsWith('/') ? 'index.html' : req.url
     
     const filePath = path.join(this.dir, name)

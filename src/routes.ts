@@ -20,11 +20,5 @@ const routes: Array<IRoute> = [
   }
 ]
 export default routes
-// export default routes.map(route => {
-//   return { 
-//     ...route,
-//     path: new RegExp("^" + route.path.replace(/\{[^\s/]+\}/g, '([\\w-]+)') + "$"),
-//     params: route.path.match(/\{[^\s/]+\}/g)?.map(k => k.slice(1, -1)) || []
-//   }
-// })
+
 

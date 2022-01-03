@@ -13,6 +13,9 @@ export default async function testRoute (context: Context) {
   //Object.keys(context.files)
 
   //context.files[key].buffer.toString()
-  return context.query
+  let body = await context.body
+  console.log(body);
+  
+  return context
   
 }
