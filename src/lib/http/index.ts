@@ -20,7 +20,7 @@ interface IValidate {
 type HttpServerOptions = {
   routes: Array<IRoute>,
   port: number,
-  static?: FileServer
+  static?: { dir: string, cache?: number }
 }
 
 export default class HttpServer {
@@ -46,7 +46,7 @@ export default class HttpServer {
 
     this.port = params.port
 
-    this._static = params.static
+    this._static = params.static ? new FileServer(params.static) : undefined
 
     this._server = createServer(this._listener.bind(this))
       .on('error', (error: IErrnoException) => {

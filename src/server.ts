@@ -9,9 +9,9 @@ import FileServer from './lib/http/static'
 const server = new HttpServer({
   routes,
   port: PORT,
-  static: new FileServer({
+  static: {
     dir: path.join(__dirname, './public'),
-  })
+  }
 });
 
 (async () => {
