@@ -1,25 +1,13 @@
-import { createServer, IncomingHttpHeaders, IncomingMessage, Server, ServerResponse } from 'http'
+import { createServer, IncomingMessage, Server, ServerResponse } from 'http'
 import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
 import { Context } from '../../interfaces/IRoute'
 import FileServer from './static'
 import stream from 'stream'
 
-interface IAuthenticate { 
-  (headers: IncomingHttpHeaders) : Promise<object | undefined>
-}
-
-interface IAuthorize {
-  (user: any, route: any) : boolean
-}
-
-interface IValidate {
-  (context: Context, route: any) : boolean | never
-}
-
 type HttpServerOptions = {
-  routes: Array<IRoute>,
   port: number,
+  routes?: Array<IRoute>,
   static?: { dir: string, cache?: number }
 }
 
@@ -31,18 +19,20 @@ export default class HttpServer {
   private port: number
 
   constructor(params: HttpServerOptions) {
-    params.routes.forEach(r => {
-      const p = r.path.match(/\{[^\s/]+\}/g)?.map(k => k.slice(1, -1)) || []
-      if (p.length) {
-        this._matching.push({
-          path: new RegExp('^' + r.path.replace(/\{[^\s/]+\}/g, '([\\w-]+)') + '$'),
-          params: p,
-          action: r.action
-        })
-      } else {
-        this._routes[`${r.method}:${r.path}`] = r.action
-      }
-    })
+    if (params.routes) {
+      params.routes.forEach(r => {
+        const p = r.path.match(/\{[^\s/]+\}/g)?.map(k => k.slice(1, -1)) || []
+        if (p.length) {
+          this._matching.push({
+            path: new RegExp('^' + r.path.replace(/\{[^\s/]+\}/g, '([\\w-]+)') + '$'),
+            params: p,
+            action: r.action
+          })
+        } else {
+          this._routes[r.path] = r.action
+        }
+      })
+    }
 
     this.port = params.port
 
@@ -99,9 +89,9 @@ export default class HttpServer {
         req,
       })
 
-      //controller/handler
+
       const result = await action(context)
-      //todo make available to set headears (context.setheaders)
+
       switch (typeof result) {
         case 'string':
           return res.end(result)
@@ -122,25 +112,11 @@ export default class HttpServer {
           break;
       }
 
-      //to-do check typeof result
-      //string -> html + view engine
-      //object = json.stringify
-      //steam - sream.pipe(res)
-
-      //todo define response content type by route options
-      //res.setHeader('Content-Type', 'text/html');
-
-      // console.log(res.writableEnded);
-      
-      // res.end(JSON.stringify(result))
-      // console.log(res.writableEnded);
-      
-
     } catch (error) {
         //TODO handle error
         res.statusCode = 500
         console.log(error);
-        
+
         res.end(JSON.stringify({ message: error.message }))
     }
   }

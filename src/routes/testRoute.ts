@@ -1,5 +1,4 @@
 import { Context } from '../interfaces/IRoute'
-import YaSpellTransform from '../classes/YaSpellTransform'
 
 export default async function testRoute (context: Context) {
   // return new Promise((resolve, reject) => {

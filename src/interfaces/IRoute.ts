@@ -17,7 +17,7 @@ export class Context {
   }
 
   write(str: string): void {
-      this._res.write(str)
+    this._res.write(str)
   }
 
   get method() {

@@ -19,7 +19,7 @@ export default class FileServer {
       return
     }
   
-    const name = req.url.endsWith('/') ? 'index.html' : req.url
+    const name = req.url.endsWith('/') ? req.url + 'index.html' : req.url
     
     const filePath = path.join(this.dir, name)
     if (!filePath.startsWith(this.dir)) {
@@ -30,8 +30,8 @@ export default class FileServer {
 
     const stream = fs.createReadStream(filePath)
     stream.on('error', function() {
-        res.writeHead(404);
-        res.end();
+      res.writeHead(404);
+      res.end();
     });
     //to-do mime type
     const fileExt = path.extname(name).substring(1);
