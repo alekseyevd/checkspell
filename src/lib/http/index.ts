@@ -89,7 +89,6 @@ export default class HttpServer {
         req,
       })
 
-
       const result = await action(context)
 
       switch (typeof result) {
@@ -102,7 +101,7 @@ export default class HttpServer {
         case 'object':   
           if (result instanceof stream.Writable) {
             return result.pipe(res)
-          } 
+          }
 
           return res.end(JSON.stringify(result))
 

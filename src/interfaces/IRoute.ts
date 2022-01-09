@@ -1,7 +1,25 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
 import formidable from 'formidable'
 
-export class Context {
+export interface IContext {
+  url: URL
+
+  get method(): any
+
+  get res(): ServerResponse
+
+  get req(): IncomingMessage
+
+  get body(): Promise<{ fields: any, files: any }>
+
+  get headers(): IncomingHttpHeaders
+
+  get params(): { [key: string]: string | number }
+
+  get query(): { [key: string]: any }
+}
+
+export class Context implements IContext {
   url: URL
   private _path: string | RegExp
   private _params: Array<string>
