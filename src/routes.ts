@@ -21,7 +21,19 @@ const routes: Array<IRoute> = [
   // }
   new Controller({
     path: '/test/{id}',
-    method: 'post'
+    method: 'post',
+    validate: {
+      body: {
+        type: 'object',
+        properties: {
+          foo: {
+            type: 'string',
+            description: 'description'
+          }
+        },
+        required: ['foo']
+      }
+    }
   }),
 ]
 export default routes

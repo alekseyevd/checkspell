@@ -25,6 +25,7 @@ export class Context implements IContext {
   private _params: Array<string>
   private _res: ServerResponse
   private _req: IncomingMessage
+  private _fields: any
 
   constructor(params: any) {
     this.url = params.url
@@ -52,6 +53,7 @@ export class Context implements IContext {
 
   get body() {
     return (async () => {
+      if (this._fields) return this._fields
       const fileMeta: {[key:string] : any} = {}
       let filesMeta: Array<any>
       const form = formidable()
@@ -81,6 +83,7 @@ export class Context implements IContext {
             reject(error)
             return
           }
+          this._fields = fields
           resolve({ fields, files: filesMeta})
         })
       })
