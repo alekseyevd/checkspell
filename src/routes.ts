@@ -27,7 +27,7 @@ const routes: Array<IRoute> = [
         type: 'object',
         properties: {
           foo: {
-            type: 'string',
+            type: 'null',
             description: 'description'
           }
         },

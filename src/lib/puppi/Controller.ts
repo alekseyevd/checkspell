@@ -25,25 +25,25 @@ export default class Controller {
 
   private async validate(context: IContext): Promise<Array<string>> {
     const schema = this._validate.body
-    
-    
+
     if (schema) {
       const body = await context.body
 
-      const result = validator(schema, body.fields)
-      console.log(result);
-      
-      if (!result) return ['errors']
+      const result = validator(schema, body, 'body')
+
+      if (result.errors) return result.errors
       return []
     }
     return []
   }
 
   private async render(ctx: PuppyContext) {
-    let user = await ctx.body
-    console.log(user);
+    let body = await ctx.body
+    let files = await ctx.files
+
+    //console.log({ body, files });
     
-    return { hgj: user || null }
+    return { body, files }
   }
 
   private async handleRequest(context: IContext) {
@@ -56,7 +56,7 @@ export default class Controller {
     if (!hasAccess) throw new Error('forbidden')
   
     const errors = await this.validate(context)
-    if (errors.length) throw new Error('validation error')
+    if (errors.length) throw new Error(errors.join(', '))
 
     const ctx = this.addPropertyToContext(context, 'user', user)
   
