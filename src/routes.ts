@@ -29,9 +29,18 @@ const routes: Array<IRoute> = [
           foo: {
             type: 'null',
             description: 'description'
+          },
+          bar: {
+            type: 'string',
+            minLength: 3,
+            maxLength: 8,
+          },
+          num: {
+            type: 'integer'
           }
         },
-        required: ['foo']
+        required: ['foo'],
+        additionalProperties: false
       }
     }
   }),

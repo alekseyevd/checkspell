@@ -24,26 +24,38 @@ export default class Controller {
   }
 
   private async validate(context: IContext): Promise<Array<string>> {
-    const schema = this._validate.body
+    const bodySchema = this._validate.body
+    const querySchema = this._validate.query
+    const paramsSchema = this._validate.params
 
-    if (schema) {
+    if (bodySchema) {
       const body = await context.body
-
-      const result = validator(schema, body, 'body')
-
-      if (result.errors) return result.errors
+      const { errors } = validator(bodySchema, body)
+      if (errors) return errors
       return []
+    }
+
+    if (querySchema) {
+      const query = context.query
+      const { errors } = validator(querySchema, query)
+      if (errors) return errors
+    }
+
+    if (paramsSchema) {
+      const params = context.params
+      const { errors } = validator(paramsSchema, params)
+      if (errors) return errors
     }
     return []
   }
 
   private async render(ctx: PuppyContext) {
     let body = await ctx.body
-    let files = await ctx.files
+    let query = ctx.query
 
     //console.log({ body, files });
     
-    return { body, files }
+    return { body, query }
   }
 
   private async handleRequest(context: IContext) {
