@@ -1,6 +1,18 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
 import formidable from 'formidable'
 
+function memoize(func: Function) {
+  let ran = false
+  let memo: any
+  return function(...args: any) {
+    if (ran) return memo;
+    ran = true;
+    memo = func.apply(args);
+    func = null;
+    return memo;
+  };
+}
+
 export interface IContext {
   url: URL
 
@@ -25,6 +37,7 @@ export class Context implements IContext {
   private _params: Array<string>
   private _res: ServerResponse
   private _req: IncomingMessage
+  private _parsed: boolean
   private _fields: any
 
   constructor(params: any) {
@@ -33,6 +46,8 @@ export class Context implements IContext {
     this._params = params.params
     this._res = params.res
     this._req = params.req
+    this._parsed = false
+    this.parseRequest = once(this.parseRequest)
   }
 
   write(str: string): void {
@@ -52,8 +67,55 @@ export class Context implements IContext {
   }
 
   get body() {
+    return (async() => {
+      if (this._body) return this._body
+
+      const { body, files } = await this.parseRequest()
+      this._body = body
+      this._files = files
+      return this._body
+    })()
+  }
+
+  private async parseRequest() {
+    const fileMeta: {[key:string] : any} = {}
+    let filesMeta: Array<any>
+    const form = formidable()
+    form.onPart = part => {
+      if (!part.filename) {
+        form.handlePart(part)
+        return
+      }
+      fileMeta[part.name] = {
+        fileName: part.filename,
+        type: part.mime,
+        buffer: []
+      }
+
+      part.on('data', function (buffer) {
+        fileMeta[part.name].buffer.push(buffer)
+      })
+      part.on('end', function () {
+        fileMeta[part.name].buffer = Buffer.concat(fileMeta[part.name].buffer)
+        filesMeta = Object.values(fileMeta)
+      })
+    }
+
+    const { fields, files } = await new Promise((resolve, reject) => {
+      form.parse(this._req, (error, fields) => {
+        if (error) {
+          reject(error)
+          return
+        }
+        resolve({ fields, files: filesMeta})
+      })
+    })
+
+    return { body: fields, files }
+  }
+
+  get bodys() {
     return (async () => {
-      if (this._fields) return this._fields
       const fileMeta: {[key:string] : any} = {}
       let filesMeta: Array<any>
       const form = formidable()
