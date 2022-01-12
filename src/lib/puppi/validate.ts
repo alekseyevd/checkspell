@@ -8,6 +8,32 @@
 //   },
 //   required: ['foo']
 // }
+type val = {
+ [key: string]: Function
+}
+
+const validators: val = {
+  date: (value: string): Boolean => {
+    const date = new Date(value)
+    if (!isNaN(date.getDate())) {
+      let month = date.getMonth() + 1
+      let monthString = month < 10 ? '0'+month : month
+      const day = date.getDate() < 10 ? '0'+ date.getDate() : date.getDate()
+      const dateString = `${date.getFullYear()}-${monthString}-${day}`
+    
+      if (dateString === value || value === date.toISOString()) {
+        return true
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  },
+  email: (value: string): Boolean => {
+    return false
+  }
+}
 
 export default function validate(schema: any, value: any, prop: string = 'value'): { result: boolean, errors?: Array<string>} {
   let errors: Array<string> =  []
@@ -49,12 +75,20 @@ export default function validate(schema: any, value: any, prop: string = 'value'
         break
       }
       if (schema.minLength && value.length < schema.minLength) {
-        errors.push(`length of poperty '${prop}' must be greater than ${schema.minLength} chars`)
+        errors.push(`length of poperty '${prop}' must be not less than ${schema.minLength} chars`)
         break
       }
       if (schema.maxLength && value.length > schema.maxLength) {
-        errors.push(`length of poperty '${prop}' must be less than ${schema.maxLength} chars`)
+        errors.push(`length of poperty '${prop}' must be not greater than ${schema.maxLength} chars`)
         break
+      }
+      if (schema.format) {
+        if (validators.hasOwnProperty(schema.format)) {
+          const result = validators[schema.format](value)
+          if (!result) {
+            errors.push(`invalid date format in property '${prop}`)
+          }
+        }
       }
       break
 
@@ -70,11 +104,11 @@ export default function validate(schema: any, value: any, prop: string = 'value'
         break
       }
       if (schema.minimum && value < schema.minimum) {
-        errors.push(`${prop} must be greater than ${schema.minimum}`)
+        errors.push(`${prop} must be not less than ${schema.minimum}`)
         break
       }
       if (schema.maximum && value > schema.maximum) {
-        errors.push(`${prop} must be less than ${schema.maximum}`)
+        errors.push(`${prop} must be not greater than ${schema.maximum}`)
         break
       }
       break
@@ -88,12 +122,28 @@ export default function validate(schema: any, value: any, prop: string = 'value'
     case 'array':
       if (!Array.isArray(value)) {
         errors.push(`typeof ${prop} must be 'array'`)
+        break
       }
-      //to do validate schema.items
+      if (schema.minItems && value.length < schema.minItems) {
+        errors.push(`'${prop}.length' must be not less than ${schema.minItems}`)
+        break
+      }
+      if (schema.maxItems && value.length > schema.maxItems) {
+        errors.push(`'${prop}.length' must be not greater than ${schema.maxItems}`)
+        break
+      }
+
+      for (let i = 0; i < value.length; i++) {
+        const res = validate(schema.items, value[i], `${prop}[${i}]`)
+        if (res.errors) {
+          errors = errors.concat(res.errors)
+          break
+        }
+      }
       break
     
     case 'null':
-      if (value !== null)errors.push(`typeof ${prop} must be 'null'`)
+      if (value !== null) errors.push(`typeof ${prop} must be 'null'`)
       break
       
     default:

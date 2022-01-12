@@ -27,7 +27,8 @@ const routes: Array<IRoute> = [
         type: 'object',
         properties: {
           foo: {
-            type: 'null',
+            type: 'string',
+            format: 'date',
             description: 'description'
           },
           bar: {
@@ -37,6 +38,14 @@ const routes: Array<IRoute> = [
           },
           num: {
             type: 'integer'
+          },
+          ar: {
+            type: 'array',
+            items: {
+              type: 'string'
+            },
+            minItems: 1,
+            maxItems: 2,
           }
         },
         required: ['foo'],
