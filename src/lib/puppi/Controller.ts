@@ -23,7 +23,7 @@ export default class Controller {
     return true
   }
 
-  private async validate(context: IContext): Promise<Array<string>|> {
+  private async validate(context: IContext): Promise<Array<string>> {
     const bodySchema = this._validate.body
     const querySchema = this._validate.query
     const paramsSchema = this._validate.params
