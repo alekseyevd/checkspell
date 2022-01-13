@@ -31,7 +31,8 @@ const validators: val = {
     }
   },
   email: (value: string): Boolean => {
-    return false
+    const regexp = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return regexp.test(value.toLowerCase())
   }
 }
 
@@ -86,7 +87,7 @@ export default function validate(schema: any, value: any, prop: string = 'value'
         if (validators.hasOwnProperty(schema.format)) {
           const result = validators[schema.format](value)
           if (!result) {
-            errors.push(`invalid date format in property '${prop}`)
+            errors.push(`invalid ${schema.format} format in property '${prop}`)
           }
         }
       }

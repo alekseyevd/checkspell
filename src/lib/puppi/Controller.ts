@@ -23,7 +23,7 @@ export default class Controller {
     return true
   }
 
-  private async validate(context: IContext): Promise<Array<string>> {
+  private async validate(context: IContext): Promise<Array<string>|> {
     const bodySchema = this._validate.body
     const querySchema = this._validate.query
     const paramsSchema = this._validate.params
@@ -32,7 +32,6 @@ export default class Controller {
       const body = await context.body
       const { errors } = validator(bodySchema, body)
       if (errors) return errors
-      return []
     }
 
     if (querySchema) {
@@ -75,7 +74,7 @@ export default class Controller {
     return this.render(ctx)
   }
 
-  private addPropertyToContext(context: IContext, key: string, value: any) {
+  private addPropertyToContext(context: IContext, key: string, value: any): PuppyContext {
     Object.defineProperty(context, key, {
       get: function() {
         return value

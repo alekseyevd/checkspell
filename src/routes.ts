@@ -28,7 +28,7 @@ const routes: Array<IRoute> = [
         properties: {
           foo: {
             type: 'string',
-            format: 'date',
+            format: 'email',
             description: 'description'
           },
           bar: {
