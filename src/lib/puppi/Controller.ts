@@ -27,6 +27,7 @@ export default class Controller {
     const bodySchema = this._validate.body
     const querySchema = this._validate.query
     const paramsSchema = this._validate.params
+    const filesSchema = this._validate.files
 
     if (bodySchema) {
       const body = await context.body
@@ -51,10 +52,11 @@ export default class Controller {
   private async render(ctx: PuppyContext) {
     let body = await ctx.body
     let query = ctx.query
+    let files = await ctx.files
 
     //console.log({ body, files });
     
-    return { body, query }
+    return { body, query, files }
   }
 
   private async handleRequest(context: IContext) {

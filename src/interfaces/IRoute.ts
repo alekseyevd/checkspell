@@ -89,6 +89,7 @@ export class Context implements IContext {
         return
       }
       fileMeta[part.name] = {
+        name: part.name,
         fileName: part.filename,
         type: part.mime,
         buffer: []
