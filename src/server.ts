@@ -4,13 +4,15 @@ import { queue } from './Queue'
 import HttpServer from './lib/http'
 import routes from './routes'
 import path from 'path'
+import bodyParser from './lib/http/bodyParser'
 
 const server = new HttpServer({
   routes,
   port: PORT,
   static: {
     dir: path.join(__dirname, './public'),
-  }
+  },
+  bodyParser: bodyParser
 });
 
 (async () => {

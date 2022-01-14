@@ -4,11 +4,13 @@ import IRoute from '../../interfaces/IRoute'
 import { Context } from '../../interfaces/IRoute'
 import FileServer from './static'
 import stream from 'stream'
+import { IBodyParser } from './interfaces'
 
 type HttpServerOptions = {
   port: number,
   routes?: Array<IRoute>,
-  static?: { dir: string, cache?: number }
+  static?: { dir: string, cache?: number },
+  bodyParser?: IBodyParser
 }
 
 export default class HttpServer {
@@ -48,6 +50,10 @@ export default class HttpServer {
         
         socket.end('HTTP/1.1 400 Bad Request')
       })
+
+    if (params.bodyParser) {
+      this.bodyParser = params.bodyParser
+    }
   }
 
   private async _listener(req: IncomingMessage, res: ServerResponse) { 
@@ -56,7 +62,7 @@ export default class HttpServer {
     // })
     const url = new URL(req.url || '/', `http://${req.headers.host}`)
     let path = url.pathname
-    let params
+    let params: any
     let action = this._routes[path]
 
     if (!action) {
@@ -87,6 +93,11 @@ export default class HttpServer {
         params,
         res,
         req,
+        bodyParser: () => {
+          return this.bodyParser(req, {
+            minFileSize: 1000024
+          })
+        }
       })
 
       const result = await action(context)
@@ -122,5 +133,9 @@ export default class HttpServer {
 
   public listen(cb: () => void) {
     this._server.listen(this.port, cb)
+  }
+
+  private bodyParser(req: IncomingMessage, args: any): Promise<any> {
+    return Promise.reject('BodyParser is not implemented')
   }
 }

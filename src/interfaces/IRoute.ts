@@ -1,5 +1,5 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
-import formidable from 'formidable'
+import { IBodyParser } from '../lib/http/interfaces'
 
 function memoize(func: Function) {
   let ran = false
@@ -39,6 +39,7 @@ export class Context implements IContext {
   private _params: Array<string>
   private _res: ServerResponse
   private _req: IncomingMessage
+  private bodyParser
 
   constructor(params: any) {
     this.url = params.url
@@ -47,6 +48,7 @@ export class Context implements IContext {
     this._res = params.res
     this._req = params.req
     this.parseRequest = memoize(this.parseRequest.bind(this))
+    this.bodyParser = params.bodyParser
   }
 
   write(str: string): void {
@@ -80,41 +82,8 @@ export class Context implements IContext {
   }
 
   private async parseRequest() {
-    const fileMeta: {[key:string] : any} = {}
-    let filesMeta: Array<any>
-    const form = formidable()
-    form.onPart = part => {
-      if (!part.filename) {
-        form.handlePart(part)
-        return
-      }
-      fileMeta[part.name] = {
-        name: part.name,
-        fileName: part.filename,
-        type: part.mime,
-        buffer: []
-      }
-
-      part.on('data', function (buffer) {
-        fileMeta[part.name].buffer.push(buffer)
-      })
-      part.on('end', function () {
-        fileMeta[part.name].buffer = Buffer.concat(fileMeta[part.name].buffer)
-        filesMeta = Object.values(fileMeta)
-      })
-    }
-
-    const { fields, files } = await new Promise((resolve, reject) => {
-      form.parse(this._req, (error, fields) => {
-        if (error) {
-          reject(error)
-          return
-        }
-        resolve({ fields, files: filesMeta})
-      })
-    })
-
-    return { body: fields, files }
+    const { body, files } = await this.bodyParser()
+    return  { body, files }
   }
 
   get headers() {
