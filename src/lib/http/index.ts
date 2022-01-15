@@ -10,17 +10,17 @@ type HttpServerOptions = {
   port: number,
   routes?: Array<IRoute>,
   static?: { dir: string, cache?: number },
-  bodyParser?: IBodyParser
 }
 
 export default class HttpServer {
-  private _routes: { [key: string]: (context: Context) => Promise<any> } = {}
+  private _routes: { [key: string]: { action: (context: Context) => Promise<any>, options?: any } }
   private _matching: Array<any> = []
   private _server: Server
   private _static?: FileServer
   private port: number
 
   constructor(params: HttpServerOptions) {
+    this._routes = {}
     if (params.routes) {
       params.routes.forEach(r => {
         const p = r.path.match(/\{[^\s/]+\}/g)?.map(k => k.slice(1, -1)) || []
@@ -28,10 +28,14 @@ export default class HttpServer {
           this._matching.push({
             path: new RegExp('^' + r.path.replace(/\{[^\s/]+\}/g, '([\\w-]+)') + '$'),
             params: p,
-            action: r.action
+            action: r.action,
+            options: r.options
           })
         } else {
-          this._routes[r.path] = r.action
+          this._routes[r.path] = { 
+            action: r.action,
+            options: r.options
+          }
         }
       })
     }
@@ -50,10 +54,6 @@ export default class HttpServer {
         
         socket.end('HTTP/1.1 400 Bad Request')
       })
-
-    if (params.bodyParser) {
-      this.bodyParser = params.bodyParser
-    }
   }
 
   private async _listener(req: IncomingMessage, res: ServerResponse) { 
@@ -63,7 +63,8 @@ export default class HttpServer {
     const url = new URL(req.url || '/', `http://${req.headers.host}`)
     let path = url.pathname
     let params: any
-    let action = this._routes[path]
+    let action = this._routes[path]?.action
+    let options = this._routes[path]?.options
 
     if (!action) {
       const route = this._matching.find(r => {
@@ -74,6 +75,7 @@ export default class HttpServer {
         action = route.action
         path = route.path
         params = route.params
+        options = route.options
       } else {
         if (this._static) {
           this._static.serveFiles(req, res)
@@ -93,11 +95,12 @@ export default class HttpServer {
         params,
         res,
         req,
-        bodyParser: () => {
-          return this.bodyParser(req, {
-            minFileSize: 1000024
-          })
-        }
+        options,
+        // bodyParser: () => {
+        //   return this.bodyParser(req, {
+        //     minFileSize: 1000024
+        //   })
+        // }
       })
 
       const result = await action(context)

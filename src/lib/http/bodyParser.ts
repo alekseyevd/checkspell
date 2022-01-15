@@ -2,11 +2,11 @@
 import formidable from 'formidable'
 import { IBodyParser } from './interfaces'
 
-const bodyParser: IBodyParser = async (req, args) => {
+const bodyParser: IBodyParser = async (req, options) => {
   const fileMeta: {[key:string] : any} = {}
   let filesMeta: Array<any>
-
-  const form = formidable(args)
+  
+  const form = formidable()
   form.onPart = part => {
     if (!part.filename) {
       form.handlePart(part)

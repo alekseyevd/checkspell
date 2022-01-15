@@ -22,6 +22,9 @@ const routes: Array<IRoute> = [
   new Controller({
     path: '/test/{id}',
     method: 'post',
+    options: {
+      upload: 'hjghj'
+    },
     validate: {
       body: {
         type: 'object',

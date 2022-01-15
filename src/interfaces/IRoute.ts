@@ -1,4 +1,5 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
+import bodyParser from '../lib/http/bodyParser';
 import { IBodyParser } from '../lib/http/interfaces'
 
 function memoize(func: Function) {
@@ -39,7 +40,7 @@ export class Context implements IContext {
   private _params: Array<string>
   private _res: ServerResponse
   private _req: IncomingMessage
-  private bodyParser
+  private _options: any
 
   constructor(params: any) {
     this.url = params.url
@@ -47,8 +48,8 @@ export class Context implements IContext {
     this._params = params.params
     this._res = params.res
     this._req = params.req
+    this._options = params.options
     this.parseRequest = memoize(this.parseRequest.bind(this))
-    this.bodyParser = params.bodyParser
   }
 
   write(str: string): void {
@@ -82,7 +83,7 @@ export class Context implements IContext {
   }
 
   private async parseRequest() {
-    const { body, files } = await this.bodyParser()
+    const { body, files } = await bodyParser(this._req, this._options)
     return  { body, files }
   }
 
@@ -134,5 +135,6 @@ export default interface IRoute {
   method: string,
   path: string,
   action: (context: Context) => Promise<any>
-  options?: any
+  options?: any,
+  files?: any
 }

@@ -6,11 +6,13 @@ export default class Controller {
   private _method: string
   private _path: string
   private _validate: any
+  private _options: any
 
   constructor(optons: any) {
     this._method = optons.method
     this._path = optons.path
     this._validate = optons.validate
+    this._options = optons.options
   }
 
   private authenticate(context: IContext): { user: any } {
@@ -50,13 +52,24 @@ export default class Controller {
   }
 
   private async render(ctx: PuppyContext) {
-    let body = await ctx.body
-    let query = ctx.query
-    let files = await ctx.files
+    // let body = await ctx.body
+    // let query = ctx.query
+    // let files = await ctx.files
 
-    //console.log({ body, files });
+    console.log(ctx.headers);
+    console.log('--------------');
     
-    return { body, query, files }
+    
+    //return { body, query, files }
+    return await new Promise((resolve, reject) => {
+      const chunks: Array<Buffer> = [];
+      ctx.req.on('data', chunk => chunks.push(chunk));
+      ctx.req.on('end', () => {
+        const data = Buffer.concat(chunks);
+        console.log(data.toString());
+        resolve('pk')
+      })
+    })
   }
 
   private async handleRequest(context: IContext) {
@@ -68,8 +81,8 @@ export default class Controller {
     const hasAccess = this.authorize(user)
     if (!hasAccess) throw new Error('forbidden')
   
-    const errors = await this.validate(context)
-    if (errors.length) throw new Error(errors.join(', '))
+    // const errors = await this.validate(context)
+    // if (errors.length) throw new Error(errors.join(', '))
 
     const ctx = this.addPropertyToContext(context, 'user', user)
   
@@ -91,6 +104,10 @@ export default class Controller {
 
   get path() {
     return this._path
+  }
+
+  get options() {
+    return this._options
   }
 
   get action() {
