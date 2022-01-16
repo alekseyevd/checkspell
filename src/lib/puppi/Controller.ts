@@ -55,18 +55,38 @@ export default class Controller {
     // let body = await ctx.body
     // let query = ctx.query
     // let files = await ctx.files
-
-    console.log(ctx.headers);
+    const boundary = ctx.headers['content-type']?.split('=')[1]
+    const buf = Buffer.from('----------------------------556455666302917302934070', 'utf-8')
+    //console.log(JSON.stringify(buf));
+    
+    console.log('boundary', boundary);
     console.log('--------------');
     
     
     //return { body, query, files }
     return await new Promise((resolve, reject) => {
       const chunks: Array<Buffer> = [];
-      ctx.req.on('data', chunk => chunks.push(chunk));
+      let state = 'start'
+      const lastItem: string = ''
+      ctx.req.on('data', (chunk: Buffer) => {
+        //chunks.push(chunk)
+        console.log('chunkk');
+        let rows = chunk.toString().split('\r\n')
+        rows[0] = lastItem + rows[0]
+        for (let i = 0; i < rows.length - 1; i++) {
+          if (state === 'start' && rows[i] === boundary) {
+            console.log('start fields');
+            state = 'start fields'
+            continue
+          }
+        }
+        
+      });
       ctx.req.on('end', () => {
         const data = Buffer.concat(chunks);
-        console.log(data.toString());
+        //console.log(data.toString());
+        //console.log(data.toString().split('\r\n'));
+        
         resolve('pk')
       })
     })
