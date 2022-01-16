@@ -67,20 +67,68 @@ export default class Controller {
     return await new Promise((resolve, reject) => {
       const chunks: Array<Buffer> = [];
       let state = 'start'
-      const lastItem: string = ''
+      let lastItem: string = ''
       ctx.req.on('data', (chunk: Buffer) => {
         //chunks.push(chunk)
         console.log('chunkk');
         let rows = chunk.toString().split('\r\n')
+        console.log(rows);
+        
         rows[0] = lastItem + rows[0]
         for (let i = 0; i < rows.length - 1; i++) {
           if (state === 'start' && rows[i] === boundary) {
-            console.log('start fields');
-            state = 'start fields'
+            state = 'boundary'
             continue
           }
+          if (state === 'boundary') {
+            const contentDisposition = rows[i].split('; ')
+            if (contentDisposition.length === 3) {
+              state = 'field name start'
+              //to do parse field name
+            } else if (contentDisposition.length === 2) {
+              state = 'file name start'
+              //todo parse file name
+            } else {
+              state = 'error'
+            }
+            continue
+          }
+          if (state === 'field name start' && rows[i] === '') {
+            state = 'field value start'
+            continue
+          }
+          if (state === 'field value start') {
+            //to do save value
+            state = 'part end'
+            continue
+          }
+          if (state === 'file name start') {
+            //to do save content type
+            state = 'file content type saved'
+            continue
+          }
+          if (state === 'file content type saved') {
+            state = 'file start'
+            // create write scream
+            continue
+          }
+          if (state === 'file start') {
+            if (rows[i] === boundary) {
+              //file ended end write stream
+              state = 'part end'
+            } else if (rows[i] === (boundary + '--')) {
+              state = 'ended'
+            } else {
+              //write stream
+            }
+            continue
+          }
+
+         
+
+
         }
-        
+        lastItem = rows[rows.length - 1]
       });
       ctx.req.on('end', () => {
         const data = Buffer.concat(chunks);
