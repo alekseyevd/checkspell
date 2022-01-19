@@ -54,120 +54,122 @@ export default class Controller {
   }
 
   private async render(ctx: PuppyContext) {
-    // let body = await ctx.body
-    // let query = ctx.query
-    // let files = await ctx.files
-    console.log(ctx.headers['content-type']);
-    
-    const boundary = '--' + ctx.headers['content-type']?.split('=')[1]
-    const buf = Buffer.from('----------------------------556455666302917302934070', 'utf-8')
-    //console.log(JSON.stringify(buf));
-    
-    let fields: {[key: string]: any} = {}
-    let files: {[key: string]: any} = {}
-    
-    //return { body, query, files }
-    return await new Promise((resolve, reject) => {
-      const chunks: Array<Buffer> = [];
-      let state = 'start'
-      let lastItem: string = ''
-      let fieldName: string = ''
-      let fileName: string = ''
-      let writebleStream: Writable
-    
-      ctx.req.on('data', (chunk: Buffer) => {
-        //chunks.push(chunk)
-        console.log('chunkk');
-        let rows = chunk.toString().split('\r\n')
-        
-        console.log(chunk.toJSON());
-        
-        rows[0] = lastItem + rows[0]
-        for (let i = 0; i < rows.length - 1; i++) {
-          if (state === 'start' && rows[i] === boundary) {
-            state = 'boundary'
-            continue
-          }
-          if (state === 'boundary') {
-            console.log(state);
-            
-            const contentDisposition = rows[i].split('; ')
-            if (contentDisposition.length === 2) {
-              //to-do check if row is valid (name="xxx")
-              fieldName = contentDisposition[1].slice(6, contentDisposition[1].length - 1)
-              state = 'field name start'
-            } else if (contentDisposition.length === 3) {
-              fieldName = contentDisposition[1].slice(6, contentDisposition[1].length - 1)
-              fileName = contentDisposition[2].slice(10, contentDisposition[2].length - 1)
-              state = 'file name start'
-              //todo parse file name
-            } else {
-              state = 'error'
-            }
-            continue
-          }
-          if (state === 'field name start') {
-            state = 'field value start'
-            continue
-          }
-          if (state === 'field value start') {
-            fields[fieldName] = rows[i]
-            state = 'field value finished'
-            continue
-          }
-          if (state === 'file name start') {
-            //to do path
-            files[fieldName] = { 
-              fileName,
-              type: rows[i],
-              buffer: [],
-              stream: fs.createWriteStream(fileName)
-            }
-            writebleStream = fs.createWriteStream(fileName)
-            state = 'file content type saved'
-            continue
-          }
-          if (state === 'file content type saved') {
-            state = 'file read'
-            // create write scream
-            continue
-          }
-          if (state === 'file read') {
-            if (rows[i] === boundary) {
-              //file ended end write stream
-              state = 'boundary'
-            } else if (rows[i] === (boundary + '--')) {
-              state = 'ended'
-            } else {
-              //write stream
-              files[fieldName].buffer.push(rows[i])
-              
-            }
-            continue
-          }
-          if (state === 'field value finished') {
-            if (rows[i] === boundary) {
-              state = 'boundary'
-            } else if (rows[i] === (boundary + '--')) {
-              state = 'ended'
-            } 
-            continue
-          }
-        }
-        lastItem = rows[rows.length - 1]
-        const buffer = files[fieldName].buffer.join('\r\n')
-        files[fieldName].stream.write(Buffer.from(buffer))
-      })
+    let body = await ctx.body
+    let query = ctx.query
+    let files = await ctx.files
 
-      ctx.req.on('end', () => {
-        const data = Buffer.concat(chunks);
-        //console.log(data.toString());
-        //console.log(data.toString().split('\r\n'));
-        console.log('fields', files);
+    return { body, files }
+    // console.log(ctx.headers['content-type']);
+    
+    // const boundary = '--' + ctx.headers['content-type']?.split('=')[1]
+    // const buf = Buffer.from('----------------------------556455666302917302934070', 'utf-8')
+    // //console.log(JSON.stringify(buf));
+    
+    // let fields: {[key: string]: any} = {}
+    // let files: {[key: string]: any} = {}
+    
+    // //return { body, query, files }
+    // return await new Promise((resolve, reject) => {
+    //   const chunks: Array<Buffer> = [];
+    //   let state = 'start'
+    //   let lastItem: string = ''
+    //   let fieldName: string = ''
+    //   let fileName: string = ''
+    //   let writebleStream: Writable
+    
+    //   ctx.req.on('data', (chunk: Buffer) => {
+    //     //chunks.push(chunk)
+    //     console.log('chunkk');
+    //     let rows = chunk.toString().split('\r\n')
         
-        resolve(fields)
-      })
-    })
+    //     console.log(chunk.toJSON());
+        
+    //     rows[0] = lastItem + rows[0]
+    //     for (let i = 0; i < rows.length - 1; i++) {
+    //       if (state === 'start' && rows[i] === boundary) {
+    //         state = 'boundary'
+    //         continue
+    //       }
+    //       if (state === 'boundary') {
+    //         console.log(state);
+            
+    //         const contentDisposition = rows[i].split('; ')
+    //         if (contentDisposition.length === 2) {
+    //           //to-do check if row is valid (name="xxx")
+    //           fieldName = contentDisposition[1].slice(6, contentDisposition[1].length - 1)
+    //           state = 'field name start'
+    //         } else if (contentDisposition.length === 3) {
+    //           fieldName = contentDisposition[1].slice(6, contentDisposition[1].length - 1)
+    //           fileName = contentDisposition[2].slice(10, contentDisposition[2].length - 1)
+    //           state = 'file name start'
+    //           //todo parse file name
+    //         } else {
+    //           state = 'error'
+    //         }
+    //         continue
+    //       }
+    //       if (state === 'field name start') {
+    //         state = 'field value start'
+    //         continue
+    //       }
+    //       if (state === 'field value start') {
+    //         fields[fieldName] = rows[i]
+    //         state = 'field value finished'
+    //         continue
+    //       }
+    //       if (state === 'file name start') {
+    //         //to do path
+    //         files[fieldName] = { 
+    //           fileName,
+    //           type: rows[i],
+    //           buffer: [],
+    //           stream: fs.createWriteStream(fileName)
+    //         }
+    //         writebleStream = fs.createWriteStream(fileName)
+    //         state = 'file content type saved'
+    //         continue
+    //       }
+    //       if (state === 'file content type saved') {
+    //         state = 'file read'
+    //         // create write scream
+    //         continue
+    //       }
+    //       if (state === 'file read') {
+    //         if (rows[i] === boundary) {
+    //           //file ended end write stream
+    //           state = 'boundary'
+    //         } else if (rows[i] === (boundary + '--')) {
+    //           state = 'ended'
+    //         } else {
+    //           //write stream
+    //           files[fieldName].buffer.push(rows[i])
+              
+    //         }
+    //         continue
+    //       }
+    //       if (state === 'field value finished') {
+    //         if (rows[i] === boundary) {
+    //           state = 'boundary'
+    //         } else if (rows[i] === (boundary + '--')) {
+    //           state = 'ended'
+    //         } 
+    //         continue
+    //       }
+    //     }
+    //     lastItem = rows[rows.length - 1]
+    //     const buffer = files[fieldName].buffer.join('\r\n')
+    //     files[fieldName].stream.write(Buffer.from(buffer))
+    //   })
+
+    //   ctx.req.on('end', () => {
+    //     const data = Buffer.concat(chunks);
+    //     //console.log(data.toString());
+    //     //console.log(data.toString().split('\r\n'));
+    //     console.log('fields', files);
+        
+    //     resolve(fields)
+    //   })
+    // })
   }
 
   private async handleRequest(context: IContext) {
