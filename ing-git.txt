@@ -1,0 +1,4 @@
+	Host: ing-git.ru
+	Panel: https://ing-git.ru:1500
+	Login: ing-git
+	Pasw: I9I2h6I9z8h7J3b6
