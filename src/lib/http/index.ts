@@ -1,10 +1,11 @@
 import { createServer, IncomingMessage, Server, ServerResponse } from 'http'
 import IErrnoException from '../../interfaces/IErrnoException'
 import IRoute from '../../interfaces/IRoute'
-import { Context } from '../../interfaces/IRoute'
+import { Context } from './Context'
 import FileServer from './static'
 import stream from 'stream'
 import { IBodyParser } from './interfaces'
+import { IContext } from './Context'
 
 type HttpServerOptions = {
   port: number,
@@ -13,7 +14,7 @@ type HttpServerOptions = {
 }
 
 export default class HttpServer {
-  private _routes: { [key: string]: { action: (context: Context) => Promise<any>, options?: any } }
+  private _routes: { [key: string]: { action: (context: IContext) => Promise<any>, options?: any } }
   private _matching: Array<any> = []
   private _server: Server
   private _static?: FileServer
@@ -103,6 +104,8 @@ export default class HttpServer {
         // }
       })
 
+      // to do upload files if needed ?
+
       const result = await action(context)
 
       switch (typeof result) {
@@ -113,7 +116,7 @@ export default class HttpServer {
           return res.end(result + '')
 
         case 'object':   
-          if (result instanceof stream.Writable) {
+          if (result instanceof stream.Readable) {
             return result.pipe(res)
           }
 

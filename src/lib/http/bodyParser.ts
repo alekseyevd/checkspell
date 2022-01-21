@@ -1,67 +1,33 @@
 
-import formidable from 'formidable'
-import fs from 'fs'
 import { IBodyParser } from './interfaces'
+import { multipart } from './parsers/multipart'
+import { json } from './parsers/json'
+import  { form } from './parsers/form'
 
-async function fileHandler (file: any) {
-  return new Promise((resolve, reject) => {
-    const stream = fs.createWriteStream(file.filename)
-    file
-    //.on('end', () => resolve(file.filename))
-    .pipe(stream)
-    .on('finish', () => resolve(file.filename))
-  })
-
-  
+const parsers = {
+  multipart,
+  json,
+  form
 }
 
 const bodyParser: IBodyParser = async (req, options) => {
-  const fileMeta: {[key:string] : any} = {}
-  let filesMeta: Array<any> = []
-
-  const form = formidable()
-  form.onPart = (part) => {
-    if (!part.filename) {
-      form.handlePart(part)
-      return
-    }
-
-    // fileMeta[part.name] = {
-    //   name: part.name,
-    //   fileName: part.filename,
-    //   type: part.mime,
-    //   buffer: [],
-    // }
-    // const stream = fs.createWriteStream(part.filename)
-
-    // part.on('data', function (buffer) {
-    //   fileMeta[part.name].buffer.push(buffer)
-    //   stream.write(buffer)
-    // })
-    // part.on('end', function () {
-    //   fileMeta[part.name].buffer = Buffer.concat(fileMeta[part.name].buffer)
-    //   filesMeta = Object.values(fileMeta)
-
-    // })
-    //part.pipe(stream)
-    // fileMeta[part.name] = fileHandler(part)
-    filesMeta.push(fileHandler(part))
-  }
-
-  const { fields, files } = await new Promise((resolve, reject) => {
-    form.parse(req, async (error, fields) => {
-      if (error) {
-        reject(error)
-        return
-      }
+  console.log(req.headers);
   
-      const files = await Promise.all(filesMeta)
-      resolve({ fields, files})
-      //resolve({ fields, files })
-    })
-  })
-
-  return { body: fields, files }
+  const contentType = req.headers['content-type']
+  //console.log(contentType);
+  
+  if (contentType && contentType.indexOf('multipart/form-data') === 0) {
+    // to do multipart
+    return await multipart(req, options)
+  }
+  if (contentType && contentType.indexOf('application/json') === 0) {
+    return await json(req, null)
+  }
+  if (contentType && contentType.indexOf('application/x-www-form-urlencoded') === 0) {
+    return await form(req, null)
+  }
+  throw new Error('invalid content-type')
+  
 }
 
 export default bodyParser
