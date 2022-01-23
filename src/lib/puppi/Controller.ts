@@ -1,8 +1,7 @@
-import fs from 'fs'
-import { Writable } from 'stream'
 import { IContext } from "../http/Context";
 import PuppyContext from "./interfaces";
 import validator from './validate'
+import crypto from 'crypto'
 
 export default class Controller {
   private _method: string
@@ -17,7 +16,10 @@ export default class Controller {
     this._options = optons.options
   }
 
-  private authenticate(context: IContext): { user: any } {
+  private authenticate(ctx: IContext): any {
+    const token = ctx.headers?.authorization?.split('Bearer ')[0]
+    if (!token) return undefined
+
     return {
       user: undefined
     }
@@ -59,13 +61,14 @@ export default class Controller {
     let query = ctx.query
 
     //const  { files } = await ctx.saveToFile()
-    return { files, query }
+    return { body, files, query, }
+
   }
 
   private async handleRequest(context: IContext) {
     if (this._method && this._method !== context.method) throw new Error('method not allowed')
 
-    const { user } = this.authenticate(context)
+    const user = this.authenticate(context)
     //context.set('user', user)
   
     const hasAccess = this.authorize(user)
