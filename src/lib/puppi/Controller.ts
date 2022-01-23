@@ -55,10 +55,10 @@ export default class Controller {
 
   private async render(ctx: PuppyContext) {
     console.log(ctx.headers);
-    //const { body, files } = await ctx.parseBody()
+    const { body, files } = await ctx.parseBody()
     let query = ctx.query
 
-    const  { files } = await ctx.saveToFile()
+    //const  { files } = await ctx.saveToFile()
     return { files, query }
   }
 

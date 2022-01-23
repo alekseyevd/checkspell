@@ -1,4 +1,5 @@
 import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
+import stream from 'stream'
 import bodyParser from './bodyParser';
 import fileUploadHandler from './helpers/fileHandler';
 import getQueryParams from './helpers/getQueryParams';
@@ -57,6 +58,9 @@ export class Context implements IContext {
     this._req = params.req
     this._options = params.options
     // this.parseRequest = memoize(this.parseRequest.bind(this))
+    if (params.handleFile) {
+      this._handleFile = params.handleFile
+    }
   }
 
   write(str: string): void {
@@ -76,33 +80,13 @@ export class Context implements IContext {
   }
 
   get body() {
-    // return (async() => {
-    //   const { body } = await this.parseRequest()
-    //   return body
-    // })()
+    // todo check if method parseBody was called
     return this._body
   }
 
   get files() {
-    // return (async() => {
-    //   const { files } = await this.parseRequest()
-    //   return files
-    // })()
+    // todo check if method parseBody was called
     return this._files
-  }
-
-  async parseBody() {
-    const { body, files } = await bodyParser(this._req, this._options)
-    this._body = body
-    this._files = files
-    return this
-  }
-
-  async saveToFile() {
-    this._files = await fileUploadHandler(this._req, {
-      filename: this.headers['file-name']
-    })
-    return this
   }
 
   get headers() {
@@ -119,13 +103,45 @@ export class Context implements IContext {
       const values = this.url.pathname.match(this._path)?.slice(1) || []
       
       for (let i = 0; i < this._params.length; i++) {
-        //params[route.params[i]] = isNaN(+values[i]) ? values[i] : +values[i]
         params[this._params[i]] = values[i]
       }
       return params
     }
 
     return params
+  }
+
+  async parseBody() {
+    // todo check if req is ended/ already read
+    const { body, files } = await bodyParser(this._req, this._options, this._handleFile)
+    this._body = body
+    this._files = files
+    return this
+  }
+
+  async saveToFile() {
+    // todo check if req is ended/ already read
+    const contentType = this._req.headers['content-type']
+
+    if (contentType && contentType.indexOf('multipart/form-data') === 0)
+        throw new Error('Invalid content type')
+    if (contentType && contentType.indexOf('application/x-www-form-urlencoded') === 0) 
+        throw new Error('Invalid content type')
+
+    const filename = this.headers['file-name']
+    if (!filename) throw new Error('Invalid filename')
+
+    this._files = await this._handleFile(this._req, {
+      filename
+    })
+
+    return this
+  }
+
+  private async _handleFile(file: stream, options: any) {
+    return await fileUploadHandler(file, {
+      filename: options.filename
+    })
   }
 
   toJSON() {
