@@ -31,7 +31,7 @@ export default class FileServer {
     const stream = fs.createReadStream(filePath)
     stream.on('error', function() {
       res.writeHead(404);
-      res.end();
+      res.end('not found');
     });
     //to-do mime type
     const fileExt = path.extname(name).substring(1);

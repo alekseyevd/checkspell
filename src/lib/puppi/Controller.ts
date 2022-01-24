@@ -1,95 +1,111 @@
-import { IContext } from "../http/Context";
-import PuppyContext from "./interfaces";
+import { IContext } from '../http/Context'
+import PuppyContext from './interfaces'
 import validator from './validate'
-import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
 
 export default class Controller {
   private _method: string
   private _path: string
   private _validate: any
   private _options: any
+  private _auth: boolean
+  private _handler: (ctx: IContext) => Promise<any>
 
-  constructor(optons: any) {
-    this._method = optons.method
-    this._path = optons.path
-    this._validate = optons.validate
-    this._options = optons.options
+  constructor(params: any) {
+    this._method = params.method
+    this._path = params.path
+    this._validate = params.validate
+    this._auth = params.auth || false
+    this._options = params.options
+    this._handler = params.handler
   }
 
   private authenticate(ctx: IContext): any {
-    const token = ctx.headers?.authorization?.split('Bearer ')[0]
+    const token = ctx.headers?.authorization?.split('Basic ')[1]
+    
     if (!token) return undefined
 
-    return {
-      user: undefined
+    const [ name, password ] = Buffer.from(token, 'base64').toString().split(':')
+    try {
+      const psw = fs.readFileSync(path.join(__dirname, '../../../storage', name, '.psw')).toString()
+
+      if (psw !== password) return undefined
+      
+      return name
+    } catch (error) {
+      console.log(error);
+      
+      return undefined
     }
+    
   }
 
   private authorize(user: any): boolean {
-    return true
+    return !!user
   }
 
-  private async validate(context: IContext): Promise<Array<string>> {
-    const bodySchema = this._validate.body
-    const querySchema = this._validate.query
-    const paramsSchema = this._validate.params
-    const filesSchema = this._validate.files
+  private async validate(ctx: IContext): Promise<Array<string>> {
+    const bodySchema = this._validate?.body
+    const querySchema = this._validate?.query
+    const paramsSchema = this._validate?.params
+    const filesSchema = this._validate?.files
+    
+    
 
     if (bodySchema) {
-      const body = await context.body
+      const { body } = await ctx.parseBody()
+      console.log(bodySchema);
+      
       const { errors } = validator(bodySchema, body)
       if (errors) return errors
     }
 
     if (querySchema) {
-      const query = context.query
+      const query = ctx.query
       const { errors } = validator(querySchema, query)
       if (errors) return errors
     }
 
     if (paramsSchema) {
-      const params = context.params
+      const params = ctx.params
       const { errors } = validator(paramsSchema, params)
       if (errors) return errors
     }
     return []
   }
 
-  private async render(ctx: PuppyContext) {
-    console.log(ctx.headers);
-    const { body, files } = await ctx.parseBody()
-    let query = ctx.query
+  private async handleRequest(ctx: IContext) {
+    console.log(this._method);
+    console.log(ctx.method);
+    
+    if (this._method && this._method !== ctx.method) throw new Error('method not allowed')
 
-    //const  { files } = await ctx.saveToFile()
-    return { body, files, query, }
+    let user
+    if (this._auth) {
+      user = this.authenticate(ctx)
+      ctx.set('user', user)
+      
+      const hasAccess = this.authorize(user)
+      if (!hasAccess) throw new Error('forbidden')
+    }
 
+    const errors = await this.validate(ctx)
+    if (errors.length) throw new Error(errors.join(', '))
+
+    //const context = this.addPropertyToContext(ctx, 'user', user)
+  
+    return this._handler(ctx)
   }
 
-  private async handleRequest(context: IContext) {
-    if (this._method && this._method !== context.method) throw new Error('method not allowed')
-
-    const user = this.authenticate(context)
-    //context.set('user', user)
-  
-    const hasAccess = this.authorize(user)
-    if (!hasAccess) throw new Error('forbidden')
-  
-    // const errors = await this.validate(context)
-    // if (errors.length) throw new Error(errors.join(', '))
-
-    const ctx = this.addPropertyToContext(context, 'user', user)
-  
-    return this.render(ctx)
-  }
-
-  private addPropertyToContext(context: IContext, key: string, value: any): PuppyContext {
-    Object.defineProperty(context, key, {
-      get: function() {
-        return value
-      }
-    })
-    return context as PuppyContext
-  }
+  // private addPropertyToContext(context: IContext, key: string, value: any): PuppyContext {
+  //   Object.defineProperty(context, key, {
+  //     get: function() {
+  //       return value
+  //     }
+  //   })
+  //   return context as PuppyContext
+  // }
 
   get method() {
     return this._method

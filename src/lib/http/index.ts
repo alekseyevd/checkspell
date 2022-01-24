@@ -28,12 +28,14 @@ export default class HttpServer {
         if (p.length) {
           this._matching.push({
             path: new RegExp('^' + r.path.replace(/\{[^\s/]+\}/g, '([\\w-]+)') + '$'),
+            method: r.method,
             params: p,
             action: r.action,
             options: r.options
           })
         } else {
-          this._routes[r.path] = { 
+          const key = `${r.method}:${r.path}`
+          this._routes[key] = { 
             action: r.action,
             options: r.options
           }
@@ -63,16 +65,17 @@ export default class HttpServer {
     // })
     const url = new URL(req.url || '/', `http://${req.headers.host}`)
     let path = url.pathname
+    let method = req.method?.toLocaleLowerCase() || 'get'
     let params: any
-    let action = this._routes[path]?.action
-    let options = this._routes[path]?.options
+    let action = this._routes[`${method}:${path}`]?.action
+    let options = this._routes[`${method}:${path}`]?.options
 
     if (!action) {
       const route = this._matching.find(r => {
-        return r.path.test(path)
+        return r.path.test(path) && r.method === method
       })
-
-      if (route) {
+      
+      if (route) { 
         action = route.action
         path = route.path
         params = route.params

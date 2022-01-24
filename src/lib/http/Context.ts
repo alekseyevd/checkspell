@@ -25,19 +25,23 @@ export interface IContext {
 
   get req(): IncomingMessage
 
-  get body(): Promise<any>
+  get body(): any
 
-  get files(): Promise<any>
+  get files(): any
 
   get headers(): IncomingHttpHeaders
 
-  get params(): { [key: string]: string | number }
+  get params(): { [key: string]: string }
 
-  get query(): { [key: string]: any }
+  get query(): { [key: string]: string }
 
-  parseBody(): Promise<any>
+  get(key: string): any
 
-  saveToFile(): Promise<any>
+  set(key: string, value: any): void
+
+  parseBody(): Promise<IContext>
+
+  saveToFile(params: any): Promise<IContext>
 }
 
 export class Context implements IContext {
@@ -49,6 +53,7 @@ export class Context implements IContext {
   private _options: any
   private _body: any
   private _files: any
+  private _map: Map<string, any>
 
   constructor(params: any) {
     this.url = params.url
@@ -57,9 +62,11 @@ export class Context implements IContext {
     this._res = params.res
     this._req = params.req
     this._options = params.options
+    this._map = new Map()
     // this.parseRequest = memoize(this.parseRequest.bind(this))
-    if (params.handleFile) {
-      this._handleFile = params.handleFile
+
+    if (params.options?.fileHandler) {
+      this._handleFile = params.options.fileHandler
     }
   }
 
@@ -98,7 +105,7 @@ export class Context implements IContext {
   }
 
   get params() {
-    const params : { [key: string]: string | number; } = {}
+    const params : { [key: string]: string } = {}
     if (this._path instanceof RegExp) {
       const values = this.url.pathname.match(this._path)?.slice(1) || []
       
@@ -111,6 +118,14 @@ export class Context implements IContext {
     return params
   }
 
+  get(key: string) {
+    return this._map.get(key)
+  }
+
+  set(key: string, value: any): void {
+    this._map.set(key, value)
+  }
+
   async parseBody() {
     // todo check if req is ended/ already read
     const { body, files } = await bodyParser(this._req, this._options, this._handleFile)
@@ -119,7 +134,7 @@ export class Context implements IContext {
     return this
   }
 
-  async saveToFile() {
+  async saveToFile(params: any) {
     // todo check if req is ended/ already read
     const contentType = this._req.headers['content-type']
 
@@ -132,7 +147,8 @@ export class Context implements IContext {
     if (!filename) throw new Error('Invalid filename')
 
     this._files = await this._handleFile(this._req, {
-      filename
+      filename,
+      ...params
     })
 
     return this

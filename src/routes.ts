@@ -4,6 +4,15 @@ import fileuploadRoute from './routes/fileupload'
 import mainRoute from './routes/main'
 import testRoute from './routes/testRoute'
 import Controller from './lib/puppi/Controller'
+import { IContext } from './lib/http/Context'
+import fs from 'fs'
+import path from 'path'
+import stream from 'stream'
+import crypto from 'crypto'
+import zlib from 'zlib'
+import PuppyContext from './lib/puppi/interfaces'
+
+const iv = Buffer.from('0a9b8d1da137092a6c2f210227022396', 'hex')
 
 const routes: Array<IRoute> = [
   // { method: 'get', path: '/', action: mainRoute},
@@ -20,43 +29,124 @@ const routes: Array<IRoute> = [
   //   }
   // }
   new Controller({
-    path: '/test/{id}',
+    path: '/register',
     method: 'post',
-    options: {
-      upload: 'hjghj'
+    handler: async (ctx: IContext) => {
+      const password = ctx.body.password
+      const name = ctx.body.name.toLowerCase()
+      if (fs.existsSync(path.join('storage', name))) throw new Error(`User ${name} is already exist`)
+    
+      await fs.promises.mkdir(path.join('storage', name))
+      await fs.promises.writeFile(path.join('storage', name, '.psw'), password)
+      return { result: true }
     },
     validate: {
       body: {
-        type: 'object',
+        type: "object",
         properties: {
-          foo: {
+          name: {
             type: 'string',
             format: 'email',
-            description: 'description'
           },
-          bar: {
+          password: {
             type: 'string',
-            minLength: 3,
-            maxLength: 8,
+            minLength: 5
           },
-          num: {
-            type: 'integer'
-          },
-          ar: {
-            type: 'array',
-            items: {
-              type: 'string'
-            },
-            minItems: 1,
-            maxItems: 2,
-          }
         },
-        required: ['foo'],
+        required: ['name', 'password'],
         additionalProperties: false
       }
     }
   }),
+  new Controller({
+    path: '/storage',
+    method: 'put',
+    auth: true,
+    handler: async (ctx: IContext) => {
+      const secret = ctx.headers['x-secret']
+      const filename = ctx.headers['file-name']
+      if (!secret) throw new Error('request headers do not contain x-secret value')
+      return await ctx.saveToFile({
+        dir: ctx.get('user'),
+        filename,
+        secret 
+      }).then(ctx => ctx.files)
+    },
+    options: {
+      fileHandler: async (file: stream, params: any) => {
+        return new Promise((resolve, reject) => {
+          const encrypt = crypto.createCipheriv('aes-256-ctr', params.secret, iv);
+      
+          const filename = `${Date.now()}_${params.filename}.gz`
+          const pathname = path.join(__dirname, '../storage', params.dir, filename) 
+          const stream = fs.createWriteStream(pathname)
+          const gz = zlib.createGzip();
+          file
+            .pipe(encrypt)
+            .pipe(gz)
+            .pipe(stream)
+            .on('finish', () => resolve({
+              filename,
+              pathname
+            }))
+            .on('error', (error: Error) => reject(error))
+        })
+      }
+    },
+  }),
+  new Controller({
+    path: '/storage/{id}',
+    method: 'get',
+    auth: true,
+    handler: async (ctx: IContext) => {
+      const id = ctx.params.id
+      const user = ctx.get('user')
+      const secret = ctx.headers['x-secret']?.toString() || 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3'
+      if (!secret) throw new Error('request headers do not contain x-secret')
+      
+      const pathname = path.join(__dirname, '../storage', user)
+      const filename = fs.readdirSync(pathname).filter(f => f.startsWith(`${id}_`))[0];
+
+      const gz = zlib.createUnzip()
+      const encrypt = crypto.createDecipheriv('aes-256-ctr', secret, iv);
+  
+      const original = filename.replace(`${id}_`, '').slice(0, -3)
+      ctx.res.setHeader('Content-Disposition', `attachment; filename=${original}`)
+      const stream = fs.createReadStream(path.join(pathname, filename))
+        .on('error', () => {
+          ctx.res.writeHead(404)
+        })
+        .pipe(gz)
+        .pipe(encrypt)
+      return stream
+
+    }
+  }),
+  new Controller({
+    path: '/storage/{id}',
+    method: 'delete',
+    auth: true,
+    handler: async (ctx: IContext) => {
+      const id = ctx.params.id
+      const user = ctx.get('user')
+      
+      const pathname = path.join(__dirname, '../storage', user)
+      const filename = fs.readdirSync(pathname).filter(f => f.startsWith(`${id}_`))[0];
+      if (!filename) throw new Error('file not found')
+      await fs.promises.unlink(path.join(pathname, filename))
+      return { result: 'done' }
+    }
+  }),
+  new Controller({
+    path: '/test/{id}',
+    method: 'post',
+    handler: async (ctx: IContext) => {
+      return await ctx.parseBody().then(ctx => ctx.body)
+    },
+    auth: true,
+  }),
 ]
+
 export default routes
 
 
