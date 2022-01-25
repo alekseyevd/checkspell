@@ -1,8 +1,4 @@
 import IRoute from './interfaces/IRoute'
-import outputRoute from './routes/output'
-import fileuploadRoute from './routes/fileupload'
-import mainRoute from './routes/main'
-import testRoute from './routes/testRoute'
 import Controller from './lib/puppi/Controller'
 import { IContext } from './lib/http/Context'
 import fs from 'fs'
@@ -10,9 +6,10 @@ import path from 'path'
 import stream from 'stream'
 import crypto from 'crypto'
 import zlib from 'zlib'
-import PuppyContext from './lib/puppi/interfaces'
+import { EventEmitter } from 'events'
 
 const iv = Buffer.from('0a9b8d1da137092a6c2f210227022396', 'hex')
+const emitter = new EventEmitter()
 
 const routes: Array<IRoute> = [
   // { method: 'get', path: '/', action: mainRoute},
@@ -145,6 +142,28 @@ const routes: Array<IRoute> = [
     },
     auth: true,
   }),
+  new Controller({
+    path: '/connect',
+    method: 'get',
+    handler: async (ctx: IContext) => {
+      ctx.res.statusCode = 200
+      ctx.res.setHeader('Connection', 'keep-alive')
+      ctx.res.setHeader('Content-Type', 'text/event-stream')
+
+      emitter.on('newMessage', (message) => {
+        ctx.res.write(`data: ${JSON.stringify(message)} \n\n`)
+    })
+    }
+  }),
+  new Controller({
+    path: '/message',
+    method: 'get',
+    handler: async (ctx: IContext) => {
+      emitter.emit('newMessage', 'test message')
+      ctx.res.statusCode = 200
+      return { status: 'done' }
+    }
+  })
 ]
 
 export default routes

@@ -127,7 +127,11 @@ export default class HttpServer {
 
         default:
           // todo throw error
-          res.end()
+          //console.log(res);
+
+          if (res.getHeader('Connection') !== 'keep-alive') res.end()
+
+          
           break;
       }
 
