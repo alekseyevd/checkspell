@@ -146,23 +146,50 @@ const routes: Array<IRoute> = [
     path: '/connect',
     method: 'get',
     handler: async (ctx: IContext) => {
+      //const user = ctx.body.user
       ctx.res.statusCode = 200
       ctx.res.setHeader('Connection', 'keep-alive')
       ctx.res.setHeader('Content-Type', 'text/event-stream')
 
-      emitter.on('newMessage', (message) => {
+      ctx.res.write(`data: token \n\n`)
+
+      emitter.on('message', (message) => {
         ctx.res.write(`data: ${JSON.stringify(message)} \n\n`)
-    })
-    }
+      })
+
+      ctx.res.on('close', () => {
+       // emitter.emit('message', `${user} left chat`)
+       emitter.emit('message', `user left chat`)
+      })
+    },
+    // validate: {
+    //   body: {
+    //     type: 'object',
+    //     properties: {
+    //       user: {
+    //         type: 'string',
+    //         minLength: 2,
+    //         maxLength: 20
+    //       },
+    //       chat_id: {
+    //         type: "integer"
+    //       },
+    //     },
+    //     required: ['user', 'chat_id'],
+    //     additionalProperties: false,
+    //   }
+    // }
   }),
   new Controller({
     path: '/message',
-    method: 'get',
+    method: 'post',
     handler: async (ctx: IContext) => {
+      const user = ctx.body.user
+
       emitter.emit('newMessage', 'test message')
       ctx.res.statusCode = 200
       return { status: 'done' }
-    }
+    },
   })
 ]
 
