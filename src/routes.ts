@@ -7,6 +7,7 @@ import stream from 'stream'
 import crypto from 'crypto'
 import zlib from 'zlib'
 import { EventEmitter } from 'events'
+import Chat from './lib/chat'
 
 const iv = Buffer.from('0a9b8d1da137092a6c2f210227022396', 'hex')
 const emitter = new EventEmitter()
@@ -190,6 +191,10 @@ const routes: Array<IRoute> = [
       ctx.res.statusCode = 200
       return { status: 'done' }
     },
+  }),
+  new Chat({
+    path: '/chat',
+    method: 'get'
   })
 ]
 
