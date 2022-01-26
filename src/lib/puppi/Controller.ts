@@ -3,22 +3,31 @@ import PuppyContext from './interfaces'
 import validator from './validate'
 import fs from 'fs'
 import path from 'path'
+import EventEmitter from 'events'
+import IRoute from '../../interfaces/IRoute'
 
-export default class Controller {
+export default class Controller extends EventEmitter implements IRoute {
   private _method: string
   private _path: string
   private _validate: any
   private _options: any
   private _auth: boolean
-  private _handler: (ctx: IContext) => Promise<any>
+  //private _handler?: (ctx: IContext) => Promise<any>
 
   constructor(params: any) {
+    super()
     this._method = params.method
     this._path = params.path
     this._validate = params.validate
     this._auth = params.auth || false
     this._options = params.options
-    this._handler = params.handler
+    if (params.handler) {
+      this._handler = params.handler
+    }
+  }
+
+  async _handler(ctx: IContext): Promise<any> {
+    throw new Error('handler is not defuned')
   }
 
   private authenticate(ctx: IContext): any {
@@ -76,8 +85,7 @@ export default class Controller {
   }
 
   private async handleRequest(ctx: IContext) {
-    console.log(this._method);
-    console.log(ctx.method);
+    if (!this._handler) throw new Error('handler is not defined')
     
     if (this._method && this._method !== ctx.method) throw new Error('method not allowed')
 

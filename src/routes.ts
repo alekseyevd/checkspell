@@ -98,7 +98,7 @@ const routes: Array<IRoute> = [
     handler: async (ctx: IContext) => {
       const id = ctx.params.id
       const user = ctx.get('user')
-      const secret = ctx.headers['x-secret']?.toString() || 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3'
+      const secret = ctx.headers['x-secret']?.toString()
       if (!secret) throw new Error('request headers do not contain x-secret')
       
       const pathname = path.join(__dirname, '../storage', user)
