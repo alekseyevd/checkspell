@@ -4,9 +4,9 @@ import { IContext } from "../http/Context"
 import Controller from "../puppi/Controller"
 
 type Message = {
+  date: number,
   from: string,
-  message: string,
-  date?: Date
+  data: string,
 }
 
 export default class Chat extends Controller {
@@ -31,6 +31,7 @@ export default class Chat extends Controller {
       this.on('message', onMessage)
 
       const name = ctx.query.name
+      if (!name) throw new Error('Invalid name value')
       const token = Buffer.from(name + Date.now()).toString('base64')
 
       ctx.res.statusCode = 200
@@ -39,42 +40,55 @@ export default class Chat extends Controller {
 
       //ctx.res.write(`data: token \n\n`)
       this._users.set(token, name)
-      ctx.res.write(`${JSON.stringify({ type: 'connect', data: token})} \n\n`)
+      ctx.res.write(`${JSON.stringify({ type: 'connect', token})} \n\n`)
       
       ctx.res.on('close', () => {
         // emitter.emit('message', `${user} left chat`)
         // this.emit('message', `user left chat`)
         this.removeListener('message', onMessage)
         this._users.delete(token)
-        this.send({ type: 'disconnect', data: `${name} user left chat` })
+        //this.send({ type: 'disconnect', data: `${name} user left chat` })
         
       })
-    } else if (type === 'message') {
-      const token = ctx.query.user
+    } else if (type === 'sendMessage') {
+      const token = ctx.query.token
       if (!this._users.has(token)) throw new Error('Invalid token')
 
-      const message = ctx.query.message
+      const message = { 
+        type: 'message',
+        date: Date.now(),
+        from: this._users.get(token),
+        data: ctx.query.message
+      }
 
       // this.emit('message', 'test message')
-      this.send({
-        type: 'message',
-        data: {
-          user: this._users.get(token),
-          message
-        }
-      })
+      this._history.push(message)
+      //this.send(message)
+      this.emit('message', JSON.stringify(message))
 
       ctx.res.statusCode = 200
       return { status: 'done' }
     } else if (type === 'getUsers') {
+      const token = ctx.query.token
+      if (!this._users.has(token)) throw new Error('Invalid token')
       const users = this._users.keys()
 
-      
-      this.send({
-        type: 'message',
+      return { 
+        status: 'done',
         data: Array.from(this._users, ([name, value]) => (value))
-      })
-    }
+      }
+      // this.send({
+      //   type: 'message',
+      //   data: Array.from(this._users, ([name, value]) => (value))
+      // })
+    } else if (type === 'getHistory') {
+      const token = ctx.query.token
+      if (!this._users.has(token)) throw new Error('Invalid token')
+      return {
+        status: 'done',
+        data: this._history
+      }
+    } 
 
   }
 

@@ -194,7 +194,28 @@ const routes: Array<IRoute> = [
   }),
   new Chat({
     path: '/chat',
-    method: 'get'
+    method: 'get',
+    validate: {
+      query: {
+        type: 'object',
+        properties: {
+          type: {
+            type: 'string'
+          },
+          name: {
+            type: 'string'
+          },
+          token: {
+            type: 'string',
+          },
+          message: {
+            type: 'string'
+          }
+        },
+        required: ['type'],
+        additionalProperties: false,
+      }
+    }
   })
 ]
 

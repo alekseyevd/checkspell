@@ -60,6 +60,7 @@ export default class Controller extends EventEmitter implements IRoute {
     const paramsSchema = this._validate?.params
     const filesSchema = this._validate?.files
     
+
     
 
     if (bodySchema) {
@@ -73,6 +74,7 @@ export default class Controller extends EventEmitter implements IRoute {
     if (querySchema) {
       const query = ctx.query
       const { errors } = validator(querySchema, query)
+      
       if (errors) return errors
     }
 
@@ -85,6 +87,7 @@ export default class Controller extends EventEmitter implements IRoute {
   }
 
   private async handleRequest(ctx: IContext) {
+    
     if (!this._handler) throw new Error('handler is not defined')
     
     if (this._method && this._method !== ctx.method) throw new Error('method not allowed')
