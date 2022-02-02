@@ -36,7 +36,7 @@ const validators: val = {
   }
 }
 
-export default function validate(schema: any, value: any, prop: string = 'value'): { result: boolean, errors?: Array<string>} {
+export default function validate(schema: any, value: any, prop: string = 'value'): { result: boolean, errors?: Array<string>} { 
   let errors: Array<string> =  []
   switch (schema.type) {
     case 'object':
@@ -55,7 +55,7 @@ export default function validate(schema: any, value: any, prop: string = 'value'
         }
 
         if (value.hasOwnProperty(key)) {
-          const res = validate(schema.properties[key], value[key], key)
+          const res = validate(schema.properties[key], value[key], `${prop}.${key}`)
           if (res.errors) errors = errors.concat(res.errors)
         }
       }
@@ -155,4 +155,8 @@ export default function validate(schema: any, value: any, prop: string = 'value'
   if (errors.length) return { result: false, errors }
 
   return { result: true }
+}
+
+export function Schema(schema: any) {
+  return validate.bind(null, schema)
 }

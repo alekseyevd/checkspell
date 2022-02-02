@@ -2,7 +2,7 @@ import { IContext } from "../http/Context"
 
 class App {
   authenticate: Map<string, (ctx: IContext) => void> 
-  authorize: Map<string, (ctx: IContext) => void> 
+  authorize: Map<string, (ctx: IContext) => boolean> 
 
   constructor() {
     this.authenticate = new Map()
