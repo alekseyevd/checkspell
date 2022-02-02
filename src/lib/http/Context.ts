@@ -155,7 +155,7 @@ export class Context implements IContext {
   }
 
   private async _handleFile(file: stream, options: any) {
-    return await fileUploadHandler(file, {
+    return fileUploadHandler(file, {
       filename: options.filename
     })
   }

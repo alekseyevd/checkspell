@@ -191,6 +191,20 @@ const routes: Array<IRoute> = [
       ctx.res.statusCode = 200
       return { status: 'done' }
     },
+    use: {
+      authenticate: 'default',
+      accessControl: ['admin', 'user'],
+      validate: {
+        body: Schema
+          .type('object')
+          .properties({
+
+          })
+        query: new JSONSchema({
+          type
+        })
+      }
+    }
   }),
   new Chat({
     path: '/chat',

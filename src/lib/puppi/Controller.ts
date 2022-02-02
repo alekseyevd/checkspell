@@ -5,6 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import EventEmitter from 'events'
 import IRoute from '../../interfaces/IRoute'
+import app from './App'
 
 export default class Controller extends EventEmitter implements IRoute {
   private _method: string
@@ -12,6 +13,7 @@ export default class Controller extends EventEmitter implements IRoute {
   private _validate: any
   private _options: any
   private _auth: boolean
+  private _use: { [key: string]: string }
   //private _handler?: (ctx: IContext) => Promise<any>
 
   constructor(params: any) {
@@ -21,6 +23,7 @@ export default class Controller extends EventEmitter implements IRoute {
     this._validate = params.validate
     this._auth = params.auth || false
     this._options = params.options
+    this._use = params.use
     if (params.handler) {
       this._handler = params.handler
     }
@@ -58,11 +61,8 @@ export default class Controller extends EventEmitter implements IRoute {
     const bodySchema = this._validate?.body
     const querySchema = this._validate?.query
     const paramsSchema = this._validate?.params
-    const filesSchema = this._validate?.files
+    const headersSchema = this._validate?.headers
     
-
-    
-
     if (bodySchema) {
       const { body } = await ctx.parseBody()
       console.log(bodySchema);
@@ -92,14 +92,19 @@ export default class Controller extends EventEmitter implements IRoute {
     
     if (this._method && this._method !== ctx.method) throw new Error('method not allowed')
 
-    let user
-    if (this._auth) {
-      user = this.authenticate(ctx)
-      ctx.set('user', user)
+    const authenticate = app.authenticate.get(this._use?.authenticate || 'default')
+    if (authenticate) authenticate(ctx)
+
+    const accessControl = app.authorize.get(this._use?.accessControl || 'default')
+    if (accessControl) accessControl(ctx)
+
+    // if (this._auth) {
+    //   user = this.authenticate(ctx)
+    //   ctx.set('user', user)
       
-      const hasAccess = this.authorize(user)
-      if (!hasAccess) throw new Error('forbidden')
-    }
+    //   const hasAccess = this.authorize(user)
+    //   if (!hasAccess) throw new Error('forbidden')
+    // }
 
     const errors = await this.validate(ctx)
     if (errors.length) throw new Error(errors.join(', '))
