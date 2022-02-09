@@ -140,30 +140,84 @@ const routes: Array<IRoute> = [
     path: '/test/{id}',
     method: 'post',
     handler: async (ctx: IContext) => {
+      let state = 'start'
+      const variants = {
+        quote: 34,
+        newLine: 10,
+        delimetr: 59
+      }
+      let arr = []
+      let line = []
+      let value = ''
+      ctx.req.on('data', (chunk: Buffer) => {
+        for (let s of chunk) {
+          //console.log(s);
+          
+          switch (s) {
+            case 59:
+              if (state === 'start') {
+                line.push(value)
+                value = ''
+                state = 'delimetr'
+                break
+              }
+              if (state === 'quoteStart') {
+                value += String.fromCharCode(s)
+                break
+              }
+              break;
+
+            case 34:
+              if (state === 'delimetr') {
+                state = 'quoteStart'
+                break
+              }
+              if (state === 'value') {
+                state = 'quoteEnd'
+                line.push(value)
+              }
+          
+            default:
+              if (state === 'value' || state === 'delimetr') {
+                state = 'value'
+                value += String.fromCharCode(s)
+                break
+              }
+              if (state === 'quoteStart') {
+                value += String.fromCharCode(s)
+                break
+              }
+              if (state === 'quoteEnd') throw new Error('csv format error')
+              break;
+          }
+        }
+        console.log(value);
+        
+      })
       return ctx.body
     },
-    validate: {
-      body: Schema({
-        type: 'object',
-        properties: {
-          foo: {
-            type: 'string',
-            format: 'email'
-          },
-          bar: {
-            type: 'object',
-            properties: {
-              foo: {
-                type: 'number',
-                minimum: 5
-              }
-            }
-          }
-        },
-        required: ['foo', 'bar'],
-        additionalProperties: false
-      })
-    }
+    // validate: {
+    //   body: Schema({
+    //     type: 'object',
+    //     properties: {
+    //       foo: {
+    //         type: 'string',
+    //         format: 'email'
+    //       },
+    //       bar: {
+    //         type: 'object',
+    //         properties: {
+    //           foo: {
+    //             type: 'number',
+    //             minimum: 5
+    //           }
+    //         }
+    //       }
+    //     },
+    //     required: ['foo', 'bar'],
+    //     additionalProperties: false
+    //   })
+    // }
   }),
   // new Controller({
   //   path: '/connect',
