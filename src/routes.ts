@@ -146,52 +146,114 @@ const routes: Array<IRoute> = [
         newLine: 10,
         delimetr: 59
       }
-      let arr = []
-      let line = []
+      let arr: Array<Array<any>> = []
+      let line: Array<string> = []
       let value = ''
       ctx.req.on('data', (chunk: Buffer) => {
+        let i = -1
+        let k = -1
         for (let s of chunk) {
-          //console.log(s);
+          // console.log(s);
           
           switch (s) {
             case 59:
               if (state === 'start') {
-                line.push(value)
-                value = ''
+                arr.push([])
+                i++
+                arr[i].push('')
+                k++
                 state = 'delimetr'
                 break
               }
-              if (state === 'quoteStart') {
-                value += String.fromCharCode(s)
+              if (state === 'quoted' || state === 'quoteEnd') {
+                arr[i][k] += String.fromCharCode(s)
                 break
               }
-              break;
+              if (state === 'quoteStart' || state === 'value') {
+                state = 'delimetr'
+                break
+              }
 
             case 34:
+              if (state === 'start') {
+                arr.push([])
+                i++
+                arr[i].push('')
+                k++
+                state = 'quoted'
+                break
+              }
               if (state === 'delimetr') {
+                arr[i].push('')
+                k++
+                state = 'quoted'
+                break
+              }
+              if (state === 'quoted') {
                 state = 'quoteStart'
                 break
               }
               if (state === 'value') {
-                state = 'quoteEnd'
-                line.push(value)
-              }
-          
-            default:
-              if (state === 'value' || state === 'delimetr') {
-                state = 'value'
-                value += String.fromCharCode(s)
+                state = 'quoteStart'
                 break
               }
               if (state === 'quoteStart') {
-                value += String.fromCharCode(s)
+                arr[i][k] += String.fromCharCode(s)
+                state = 'quoteEnd'
                 break
               }
-              if (state === 'quoteEnd') throw new Error('csv format error')
+              if (state === 'quoteEnd') {
+                state = 'quoteStart'
+                break
+              }
+
+            case variants.newLine:
+              if (state === 'start') throw new Error('csv format error')
+              if (state === 'delimetr') {
+                arr[i].push('')
+                k = -1
+                state = 'start'
+                break
+              }
+              if (state === 'quoted' || state === 'quoteEnd') {
+                arr[i][k] += String.fromCharCode(s)
+                break
+              }
+
+              state = 'start'
+              k = -1
+              break
+          
+            default:
+              if (state === 'start') {
+                //создаем новую строку
+                arr.push([])
+                i++
+                //создаем новую ячейку
+                arr[i].push(String.fromCharCode(s))
+                k++
+                state = 'value'
+                break
+              }
+              if (state === 'delimetr') {
+                arr[i].push(String.fromCharCode(s))
+                k++
+                state = 'value'
+                break
+              }
+              if (state === 'value') {
+                arr[i][k] += String.fromCharCode(s)
+              }
+              if (state === 'quoted' || state === 'quoteEnd') {
+                arr[i][k] += String.fromCharCode(s)
+                break
+              }
+              if (state === 'quoteStart') throw new Error('csv format error')
+              
               break;
           }
         }
-        console.log(value);
+        console.log(arr);
         
       })
       return ctx.body
