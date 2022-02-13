@@ -1,14 +1,15 @@
+'use strict';
+
 const net = require('net');
 
 const socket = new net.Socket();
 
 const send = (message) => {
-  //console.log('Client >', message);
   socket.write(message);
 };
 
 socket.on('data', (data) => {
-  console.log('Server >', data.toString(), data);
+  console.log('Server >', data.toString());
 });
 
 socket.on('drain', () => {
@@ -33,20 +34,15 @@ socket.on('timeout', () => {
 });
 
 socket.on('connect', () => {
-  console.log('connected');
-  send('44444444444');
-  send('💩');
-  send('666666666666');
-  send('777777777');
-  send('💩');
+  send('💋');
+  send('💋');
+  send('💋');
+  send('sfdsfgsdfghdfgh sdfhgkhsfdghfdshg sdfgkhdsfhg')
+  socket.end()
 });
 
 socket.connect({
   port: 2000,
-  host: 'localhost',
+  host: '127.0.0.1',
 });
 
-send('1111111111111');
-// send('222222222222222');
-// send('💩');
-// send('333333333');
