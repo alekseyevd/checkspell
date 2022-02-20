@@ -1,5 +1,9 @@
 'use strict';
 
+const fs = require('fs');
+const os = require ('os')
+const path = require('path')
+
 const debug = require('debug')('network');
 
 function Networker(socket, handler) {
@@ -9,6 +13,7 @@ function Networker(socket, handler) {
   this._process = false;
   this._state = 'HEADER';
   this._type = 0;
+  this._action = 0;
   this._payloadLength = 0;
   this._bufferedBytes = 0;
   this.queue = [];
@@ -27,6 +32,25 @@ Networker.prototype.init = function () {
 
   this.socket.on('served', this.handler);
 };
+
+Networker.prototype.handler = function (buffer) {
+  switch (this._action) {
+    case 0:
+      this.socket.write(buffer)
+      break;
+    
+      case 1:
+        console.log(buffer.toString());
+        break;
+
+      case 2:
+        fs.writeFile(path.join(os.tmpdir, `${Date.now()}`), buffer)
+        break;
+  
+    default:
+      break;
+  }
+}
 
 Networker.prototype._hasEnough = function (size) {
   if (this._bufferedBytes >= size) {
@@ -73,8 +97,8 @@ Networker.prototype._readBytes = function (size) {
 }
 
 Networker.prototype._getHeader = function () {
-  if (this._hasEnough(2)) {
-    this._payloadLength = this._readBytes(2).readUInt16BE(0, true);
+  if (this._hasEnough(4)) {
+    this._payloadLength = this._readBytes(4).readUInt16BE(0, true);
     this._state = 'TYPE';
   }
 }
@@ -95,22 +119,37 @@ Networker.prototype._getAction = function () {
 
 Networker.prototype._getPayload = function () {
   if (this._hasEnough(this._payloadLength)) {
-    //to do разделить на пакеты по 65536 байт
-    if (this._payloadLength > 65536) {
-      let n = (this._payloadLength / 65536).toFixed(0)
-      while (n) {
-        let received = this._readBytes(65536);
-        n--
-        this.socket.emit('packet', received)
-      }
-      let received = this._readBytes(this._payloadLength % 65536)
-      this.socket.emit('packetEnd', received)
-    }
-
     let received = this._readBytes(this._payloadLength);
-    this.socket.emit('served', received);
+    //to do check type
+    if (this._checkType(received)) {
+      this.socket.emit('served', received);
+    }
+    
     this._state = 'HEADER';
   }
+}
+
+Networker.prototype._checkType = function (buffer) {
+  switch (this._type) {
+    case 0:
+      return isValidUTF8(buffer)
+
+    case 1:
+      try {
+        JSON.parse(buffer.toString())
+      } catch (error) {
+        return false
+      }
+      return true
+    
+    case 2:
+      return buffer.toString("hex", 0, 2) === "ffd8"
+    
+    default:
+      return false;
+  }
+
+
 }
 
 Networker.prototype._onData = function (data) {
@@ -147,7 +186,7 @@ Networker.prototype._header = function (messageLength) {
 };
 
 Networker.prototype._send = function () {
-  let contentLength = Buffer.allocUnsafe(2);
+  let contentLength = Buffer.allocUnsafe(4);
   contentLength.writeUInt16BE(this._packet.header.length);
   debug('Attempting to write...', this._packet);
   this.socket.write(contentLength);
