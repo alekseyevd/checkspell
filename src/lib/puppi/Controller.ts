@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import EventEmitter from 'events'
 import IRoute from '../../interfaces/IRoute'
-import app from './App'
+import App from './App'
 
 export default class Controller extends EventEmitter implements IRoute {
   private _method: string
@@ -93,16 +93,16 @@ export default class Controller extends EventEmitter implements IRoute {
     
     if (this._method && this._method !== ctx.method) throw new Error('method not allowed')
 
-    const authenticate = app.authenticate.get(this._use?.authenticate || 'default')
+    const authenticate = App.authenticate.get(this._use?.authenticate || 'default')
     if (authenticate) authenticate(ctx)
 
     let authorized = false
     if (!this._use.accessControl) {
-      const accessControl = app.authorize.get('default')
+      const accessControl = App.authorize.get('default')
       authorized = accessControl ? accessControl(ctx) : true
     } else {
       for (const key of this._use.accessControl) {
-        const accessControl = app.authorize.get(key)
+        const accessControl = App.authorize.get(key)
         authorized = accessControl ? accessControl(ctx) : false
         if (authorized) break
       }
