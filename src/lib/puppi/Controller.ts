@@ -7,7 +7,7 @@ import EventEmitter from 'events'
 import IRoute from '../../interfaces/IRoute'
 import App from './App'
 
-export default class Controller extends EventEmitter implements IRoute {
+export default class Controller implements IRoute {
   private _method: string
   private _path: string
   private _validate: any
@@ -16,7 +16,6 @@ export default class Controller extends EventEmitter implements IRoute {
   //private _handler?: (ctx: IContext) => Promise<any>
 
   constructor(params: any) {
-    super()
     this._method = params.method
     this._path = params.path
     this._validate = params.validate
@@ -30,26 +29,6 @@ export default class Controller extends EventEmitter implements IRoute {
   async _handler(ctx: IContext): Promise<any> {
     throw new Error('handler is not defuned')
   }
-
-  // private authenticate(ctx: IContext): any {
-  //   const token = ctx.headers?.authorization?.split('Basic ')[1]
-    
-  //   if (!token) return undefined
-
-  //   const [ name, password ] = Buffer.from(token, 'base64').toString().split(':')
-  //   try {
-  //     const psw = fs.readFileSync(path.join(__dirname, '../../../storage', name, '.psw')).toString()
-
-  //     if (psw !== password) return undefined
-      
-  //     return name
-  //   } catch (error) {
-  //     console.log(error);
-      
-  //     return undefined
-  //   }
-    
-  // }
 
   private async validate(ctx: IContext): Promise<Array<string>> {
     const bodySchema = this._validate?.body
@@ -94,7 +73,9 @@ export default class Controller extends EventEmitter implements IRoute {
     if (this._method && this._method !== ctx.method) throw new Error('method not allowed')
 
     const authenticate = App.authenticate.get(this._use?.authenticate || 'default')
-    if (authenticate) authenticate(ctx)
+    if (authenticate) {
+      authenticate(ctx)
+    }
 
     let authorized = false
     if (!this._use.accessControl) {
@@ -108,7 +89,6 @@ export default class Controller extends EventEmitter implements IRoute {
       }
     }
     if (!authorized) throw new Error('unauthorized')
-
 
     const errors = await this.validate(ctx)
     if (errors.length) throw new Error(errors.join(', '))

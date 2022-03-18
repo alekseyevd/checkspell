@@ -1,6 +1,6 @@
-import { Context } from '../interfaces/IRoute'
+import { IContext } from '../lib/http/Context';
 
-export default async function testRoute (context: Context) {
+export default async function testRoute (context: IContext) {
   // return new Promise((resolve, reject) => {
   //   setTimeout(() => {
   //     //console.log(context);
@@ -13,7 +13,7 @@ export default async function testRoute (context: Context) {
 
   //context.files[key].buffer.toString()
   let body = await context.body
-  console.log(body);
+  console.log(context.get('user'));
   
   return context
   

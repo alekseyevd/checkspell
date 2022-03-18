@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "formidable": "^1.2.2",
+    "pg": "^8.7.3",
     "safe-regex": "^2.1.1"
   }
 }
