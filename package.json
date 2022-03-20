@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/formidable": "^1.2.3",
     "@types/node": "^16.4.13",
+    "@types/pg": "^8.6.5",
     "cross-env": "^7.0.3",
     "nodemon": "^2.0.12",
     "ts-node": "^10.2.0",

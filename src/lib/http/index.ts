@@ -125,6 +125,9 @@ export default class HttpServer {
 
           return res.end(JSON.stringify(result))
 
+        case 'boolean':
+          return res.end(result.toString())
+
         default:
           // todo throw error
           //console.log(res);

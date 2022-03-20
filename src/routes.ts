@@ -10,6 +10,8 @@ import { EventEmitter } from 'events'
 import Chat from './lib/chat'
 import { Schema } from './lib/puppi/validate'
 import testRoute from './routes/testRoute'
+import register from './routes/register'
+import login from './routes/login'
 
 
 const routes: Array<IRoute> = [
@@ -20,7 +22,54 @@ const routes: Array<IRoute> = [
     path: '/test/{id}',
     method: 'get',
     handler: testRoute,
-  })
+  }),
+  new Controller({
+    path: '/register',
+    method: 'post',
+    handler: register,
+    validate: {
+      body: Schema({
+        type: 'object',
+        properties: {
+          login: {
+            type: 'string',
+          },
+          password: {
+            type: 'string'
+          },
+          email: {
+            type: 'string',
+            format: 'email'
+          }
+        },
+        required: ['login', 'password', 'email']
+      })
+    }
+  }),
+  new Controller({
+    path: '/test/{id}',
+    method: 'get',
+    handler: testRoute,
+  }),
+  new Controller({
+    path: '/login',
+    method: 'post',
+    handler: login,
+    validate: {
+      body: Schema({
+        type: 'object',
+        properties: {
+          login: {
+            type: 'string',
+          },
+          password: {
+            type: 'string'
+          }
+        },
+        required: ['login', 'password']
+      })
+    }
+  }),
   // new Controller({
   //   path: '/register',
   //   method: 'post',
