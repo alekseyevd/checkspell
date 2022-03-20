@@ -4,3 +4,4 @@ dist
 output
 storage
 .env
+.vscode
