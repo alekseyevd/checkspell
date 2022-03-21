@@ -1,5 +1,6 @@
 import { Pool } from 'pg'
 
+
 type Record = {
   id: string,
   [key: string]: any
@@ -21,13 +22,7 @@ class Db {
   }
 }
 
-export const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: 'postgres',
-});
+export const pool = new Pool();
 
 
 export const db = new Db()

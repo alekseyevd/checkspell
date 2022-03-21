@@ -4,6 +4,7 @@ import { queue } from './Queue'
 import HttpServer from './lib/http'
 import routes from './routes'
 import path from 'path'
+import { pool } from './db'
 
 const server = new HttpServer({
   routes,
@@ -20,6 +21,7 @@ const server = new HttpServer({
     if (!fs.existsSync(OUTPUT_DIR)) await fs.promises.mkdir(OUTPUT_DIR)
 
     queue.start()
+    await pool.connect()
     server.listen(() => {
       console.log(`Server listening on port ${PORT}`)
     })

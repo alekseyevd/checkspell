@@ -15,7 +15,7 @@ export default async function register(ctx: IContext) {
     INSERT INTO users (login, password, salt, email)
       VALUES (
         $1, '${hashedPwd}', '${salt}', $2
-      )
+      ) RETURNING id;
   `;
   const res = await pool.query(sql, [login, email]);
   return res
