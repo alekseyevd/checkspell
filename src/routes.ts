@@ -12,6 +12,7 @@ import { Schema } from './lib/puppi/validate'
 import testRoute from './routes/testRoute'
 import register from './routes/register'
 import login from './routes/login'
+import refresh from './routes/refresh'
 
 
 const routes: Array<IRoute> = [
@@ -22,6 +23,7 @@ const routes: Array<IRoute> = [
     path: '/test/{id}',
     method: 'get',
     handler: testRoute,
+    use: { authenticate: 'jwt' }
   }),
   new Controller({
     path: '/register',
@@ -69,6 +71,22 @@ const routes: Array<IRoute> = [
         required: ['login', 'password']
       })
     }
+  }),
+  new Controller({
+    path: '/refresh',
+    method: 'post',
+    handler: refresh,
+    validate: {
+      body: Schema({
+        type: 'object',
+        properties: {
+          token: {
+            type: 'string',
+          }
+        },
+        required: ['token']
+      })
+    },
   }),
   // new Controller({
   //   path: '/register',

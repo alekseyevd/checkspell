@@ -12,7 +12,7 @@ type val = {
  [key: string]: Function
 }
 
-const validators: val = {
+export const validators: val = {
   date: (value: string): Boolean => {
     const date = new Date(value)
     if (!isNaN(date.getDate())) {
