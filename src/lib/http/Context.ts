@@ -53,6 +53,7 @@ export class Context implements IContext {
   private _options: any
   private _body: any
   private _files: any
+  private _file: string | undefined
   private _map: Map<string, any>
 
   constructor(params: any) {
@@ -64,10 +65,6 @@ export class Context implements IContext {
     this._options = params.options
     this._map = new Map()
     // this.parseRequest = memoize(this.parseRequest.bind(this))
-
-    if (params.options?.fileHandler) {
-      this._handleFile = params.options.fileHandler
-    }
   }
 
   write(str: string): void {
@@ -94,6 +91,10 @@ export class Context implements IContext {
   get files() {
     // todo check if method parseBody was called
     return this._files
+  }
+
+  get file() {
+    return this._file
   }
 
   get headers() {
@@ -128,37 +129,32 @@ export class Context implements IContext {
 
   async parseBody() {
     // todo check if req is ended/ already read
-    const { body, files } = await bodyParser(this._req, this._options, this._handleFile)
+    const { body, files } = await bodyParser(this._req, this._options)
     this._body = body
     this._files = files
     return this
   }
 
-  async saveToFile(params: any) {
+  async saveToFile(params: { path?: string, name?: string } = {}) {
     // todo check if req is ended/ already read
-    const contentType = this._req.headers['content-type']
-
-    if (contentType && contentType.indexOf('multipart/form-data') === 0)
-        throw new Error('Invalid content type')
-    if (contentType && contentType.indexOf('application/x-www-form-urlencoded') === 0) 
-        throw new Error('Invalid content type')
-
-    const filename = this.headers['file-name']
-    if (!filename) throw new Error('Invalid filename')
-
-    this._files = await this._handleFile(this._req, {
-      filename,
+ 
+    // this._file = await this._handleFile(this._req, {
+    //   filename,
+    //   ...params
+    // })
+    this._file = await fileUploadHandler({ 
+      file: this._req, 
       ...params
     })
 
     return this
   }
 
-  private async _handleFile(file: stream, options: any) {
-    return fileUploadHandler(file, {
-      filename: options.filename
-    })
-  }
+  // private async _handleFile(file: stream, options: any): Promise<string> {
+  //   return fileUploadHandler(file, {
+  //     filename: options.filename
+  //   })
+  // }
 
   toJSON() {
     return {

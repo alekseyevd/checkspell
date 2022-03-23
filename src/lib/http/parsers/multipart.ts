@@ -3,7 +3,7 @@ import { IncomingMessage } from 'http'
 import { IBodyParser } from '../interfaces'
 import fileUploadHandler from '../helpers/fileHandler'
 
-export const multipart: IBodyParser = async (req: IncomingMessage, _, fileHandler) => {
+export const multipart: IBodyParser = async (req: IncomingMessage) => {
   const fileMeta: {[key:string] : any} = {}
   const form = formidable()
   form.onPart = (part) => {
@@ -12,12 +12,10 @@ export const multipart: IBodyParser = async (req: IncomingMessage, _, fileHandle
       return
     }
 
-    if (fileHandler) {
-      fileMeta[part.name] = fileHandler(part, { 
-        name: part.name,
-        filename: part.filename
-      })
-    }
+    fileMeta[part.name] = fileUploadHandler({
+      file: part,
+      name: part.filename
+    })
   }
 
   const { fields, files } = await new Promise((resolve, reject) => {

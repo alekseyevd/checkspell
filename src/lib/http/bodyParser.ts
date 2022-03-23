@@ -6,11 +6,11 @@ import { form } from './parsers/form'
 import { text} from './parsers/text'
 
 
-const bodyParser: IBodyParser = async (req, options, fileHandler) => {
+const bodyParser: IBodyParser = async (req) => {
   const contentType = req.headers['content-type']
   
   if (contentType && contentType.indexOf('multipart/form-data') === 0) {
-    return await multipart(req, options, fileHandler)
+    return await multipart(req)
   }
   if (contentType && contentType.indexOf('application/json') === 0) {
     return await json(req)

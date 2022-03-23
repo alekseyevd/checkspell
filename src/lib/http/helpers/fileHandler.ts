@@ -3,16 +3,15 @@ import os from 'os'
 import path from 'path'
 import stream from 'stream';
 
-export default async function fileUploadHandler (file: stream, params: any) {
-  if (!params.filename) throw new Error('Invalid filename...')
-
+export default function fileUploadHandler (params: { file: stream,  path?: string, name?: string }): Promise<string> {
   return new Promise((resolve, reject) => {
-    const fileName = path.join(os.tmpdir(), `[${Date.now()}]_${params.filename}`)
-    const stream = fs.createWriteStream(fileName)
+    const fileName = params.name ? `[${Date.now()}]_${params.name}` : Date.now().toString()
+    const filePath = path.join(params.path || os.tmpdir(), fileName)
+    const stream = fs.createWriteStream(filePath)
 
-    file
+    params.file
       .pipe(stream)
-      .on('finish', () => resolve(fileName))
+      .on('finish', () => resolve(filePath))
       .on('error', (error: Error) => reject(error))
   })
 }

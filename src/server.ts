@@ -1,10 +1,25 @@
 import fs from 'fs'
-import { OUTPUT_DIR, PORT, TEMP_DIR } from './config'
+import { JWTSECRET, OUTPUT_DIR, PORT, TEMP_DIR } from './config'
 import { queue } from './Queue'
 import HttpServer from './lib/http'
 import routes from './routes'
 import path from 'path'
 import { pool } from './db'
+import App from './lib/puppi/App'
+import { IContext } from './lib/http/Context'
+import jwt from './lib/jwt'
+
+App.authenticate.set('default', (ctx: IContext) => {
+  ctx.set('user', 'anonymous')
+})
+App.authenticate.set('jwt', (ctx: IContext) => {
+  const token = ctx.headers.authorization?.split('Bearer ')[1]
+  if (!token) throw new Error('Unauthorized')
+
+  const { user } = jwt.verify(token, JWTSECRET)
+  if (!user) throw new Error('Invalid token')
+  ctx.set('user', user)
+})
 
 const server = new HttpServer({
   routes,

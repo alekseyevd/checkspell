@@ -13,7 +13,7 @@ export default class Controller implements IRoute {
   private _validate: any
   private _options: any
   private _use: { authenticate?: string, accessControl?: Array<string> }
-  //private _handler?: (ctx: IContext) => Promise<any>
+  private _handler?: (ctx: IContext) => Promise<any>
 
   constructor(params: any) {
     this._method = params.method
@@ -21,14 +21,12 @@ export default class Controller implements IRoute {
     this._validate = params.validate
     this._options = params.options
     this._use = params.use || {}
-    if (params.handler) {
-      this._handler = params.handler
-    }
+    this._handler = params.handler
   }
 
-  async _handler(ctx: IContext): Promise<any> {
-    throw new Error('handler is not defuned')
-  }
+  // async _handler(ctx: IContext): Promise<any> {
+  //   throw new Error('handler is not defuned')
+  // }
 
   private async validate(ctx: IContext): Promise<Array<string>> {
     const bodySchema = this._validate?.body
