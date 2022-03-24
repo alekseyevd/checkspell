@@ -4,8 +4,8 @@ import IRoute from '../../interfaces/IRoute'
 import { Context } from './Context'
 import FileServer from './static'
 import stream from 'stream'
-import { IBodyParser } from './interfaces'
 import { IContext } from './Context'
+import HttpError from './HttpError'
 
 type HttpServerOptions = {
   port: number,
@@ -138,12 +138,14 @@ export default class HttpServer {
           break;
       }
 
-    } catch (error) {
-        //TODO handle error
-        res.statusCode = 500
-        console.log(error);
-
+    } catch (err) {
+        const error = err as Error
+        res.statusCode = error instanceof HttpError 
+          ? error.code
+          : 500
         res.end(JSON.stringify({ message: error.message }))
+        console.error(error);
+        
     }
   }
 

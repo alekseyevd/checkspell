@@ -1,31 +1,24 @@
 import IRoute from './interfaces/IRoute'
-import Controller from './lib/puppi/Controller'
-import { IContext } from './lib/http/Context'
-import fs from 'fs'
-import path from 'path'
-import stream from 'stream'
-import crypto from 'crypto'
-import zlib from 'zlib'
-import { EventEmitter } from 'events'
-import Chat from './lib/chat'
-import { Schema } from './lib/puppi/validate'
+import Route from './lib/puppi/Route'
+import { Schema } from './lib/validation/validate'
 import testRoute from './routes/testRoute'
 import register from './routes/register'
 import login from './routes/login'
 import refresh from './routes/refresh'
+import { AuthStratagy } from './services/authentication'
 
 
 const routes: Array<IRoute> = [
   // { method: 'get', path: '/', action: mainRoute},
   // // { method: 'post', path: '/api/v1/', action: fileuploadRoute },
   // // { method: 'get', path: '/output/', action: outputRoute },
-  new Controller({
+  new Route({
     path: '/test/{id}',
     method: 'get',
     handler: testRoute,
-    use: { authenticate: 'jwt' }
+    use: { authenticate: AuthStratagy.jwt }
   }),
-  new Controller({
+  new Route({
     path: '/register',
     method: 'post',
     handler: register,
@@ -48,12 +41,12 @@ const routes: Array<IRoute> = [
       })
     }
   }),
-  new Controller({
+  new Route({
     path: '/test/{id}',
     method: 'get',
     handler: testRoute,
   }),
-  new Controller({
+  new Route({
     path: '/login',
     method: 'post',
     handler: login,
@@ -72,7 +65,7 @@ const routes: Array<IRoute> = [
       })
     }
   }),
-  new Controller({
+  new Route({
     path: '/refresh',
     method: 'post',
     handler: refresh,
@@ -88,7 +81,7 @@ const routes: Array<IRoute> = [
       })
     },
   }),
-  // new Controller({
+  // new Route({
   //   path: '/register',
   //   method: 'post',
   //   handler: async (ctx: IContext) => {
@@ -118,7 +111,7 @@ const routes: Array<IRoute> = [
   //     }
   //   }
   // }),
-  // new Controller({
+  // new Route({
   //   path: '/storage',
   //   method: 'put',
   //   auth: true,
@@ -154,7 +147,7 @@ const routes: Array<IRoute> = [
   //     }
   //   },
   // }),
-  // new Controller({
+  // new Route({
   //   path: '/storage/{id}',
   //   method: 'get',
   //   auth: true,
@@ -182,7 +175,7 @@ const routes: Array<IRoute> = [
 
   //   }
   // }),
-  // new Controller({
+  // new Route({
   //   path: '/storage/{id}',
   //   method: 'delete',
   //   auth: true,
@@ -220,7 +213,7 @@ const routes: Array<IRoute> = [
     //   })
     // }
   //}),
-  // new Controller({
+  // new Route({
   //   path: '/connect',
   //   method: 'get',
   //   handler: async (ctx: IContext) => {
@@ -258,7 +251,7 @@ const routes: Array<IRoute> = [
   //     }
   //   }
   // }),
-  // new Controller({
+  // new Route({
   //   path: '/message',
   //   method: 'post',
   //   handler: async (ctx: IContext) => {

@@ -1,40 +1,5 @@
-// const schema = {
-//   type: 'object',
-//   properties: {
-//     foo: {
-//       type: 'string',
-//       description: 'description'
-//     }
-//   },
-//   required: ['foo']
-// }
-type val = {
- [key: string]: Function
-}
+import { validators } from "./validators"
 
-export const validators: val = {
-  date: (value: string): Boolean => {
-    const date = new Date(value)
-    if (!isNaN(date.getDate())) {
-      let month = date.getMonth() + 1
-      let monthString = month < 10 ? '0'+month : month
-      const day = date.getDate() < 10 ? '0'+ date.getDate() : date.getDate()
-      const dateString = `${date.getFullYear()}-${monthString}-${day}`
-    
-      if (dateString === value || value === date.toISOString()) {
-        return true
-      } else {
-        return false
-      }
-    } else {
-      return false
-    }
-  },
-  email: (value: string): Boolean => {
-    const regexp = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return regexp.test(value.toLowerCase())
-  }
-}
 
 export default function validate(schema: any, value: any, prop: string = 'value'): { result: boolean, errors?: Array<string>} { 
   let errors: Array<string> =  []
@@ -158,5 +123,8 @@ export default function validate(schema: any, value: any, prop: string = 'value'
 }
 
 export function Schema(schema: any) {
+  // return (value: any) => {
+  //   return validate(schema, value)
+  // }
   return validate.bind(null, schema)
 }

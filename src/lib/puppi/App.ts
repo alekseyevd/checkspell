@@ -1,12 +1,9 @@
-import { JWTSECRET } from "../../config"
-import { IContext } from "../http/Context"
-import jwt from "../jwt"
+import Route from "./Route"
 
 class App {
-  static authenticate: Map<string, (ctx: IContext) => void> = new Map()
-  static authorize: Map<string, (ctx: IContext) => boolean> = new Map()
+  constructor(routes: Route[]) {
+
+  }
 }
 
-
 export default App
-
