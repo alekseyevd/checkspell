@@ -63,36 +63,38 @@ export default class HttpServer {
     // res.on('finish', () => {
     //   console.log('log data');
     // })
-    const url = new URL(req.url || '/', `http://${req.headers.host}`)
-    let path = url.pathname
-    let method = req.method?.toLocaleLowerCase() || 'get'
-    let params: any
-    let action = this._routes[`${method}:${path}`]?.action
-    let options = this._routes[`${method}:${path}`]?.options
-
-    if (!action) {
-      const route = this._matching.find(r => {
-        return r.path.test(path) && r.method === method
-      })
-      
-      if (route) { 
-        action = route.action
-        path = route.path
-        params = route.params
-        options = route.options
-      } else {
-        if (this._static) {
-          this._static.serveFiles(req, res)
-          return
-        }
-        
-        res.statusCode = 404
-        res.end('not found')
-        return
-      }
-    }
-  
     try {
+
+      const url = new URL(req.url || '/', `http://${req.headers.host}`)
+      let path = url.pathname
+      let method = req.method?.toLocaleLowerCase() || 'get'
+      let params: any
+      let action = this._routes[`${method}:${path}`]?.action
+      let options = this._routes[`${method}:${path}`]?.options
+
+      if (!action) {
+        const route = this._matching.find(r => {
+          return r.path.test(path) && r.method === method
+        })
+        
+        if (route) { 
+          action = route.action
+          path = route.path
+          params = route.params
+          options = route.options
+        } else {
+          if (this._static) {
+            this._static.serveFiles(req, res)
+            return
+          }
+          throw new HttpError(404, 'not found')
+          // res.statusCode = 404
+          // res.end('not found')
+          return
+
+        }
+      }
+  
       const context = new Context({
         url,
         path,

@@ -1,6 +1,5 @@
 import { IContext } from '../http/Context'
 import IRoute from '../../interfaces/IRoute'
-import App from './App'
 
 export default class Route implements IRoute {
   static authenticate: Map<string, (ctx: IContext) => void> = new Map()

@@ -2,85 +2,22 @@ import IRoute from './interfaces/IRoute'
 import Route from './lib/puppi/Route'
 import { Schema } from './lib/validation/validate'
 import testRoute from './routes/testRoute'
-import register from './routes/register'
-import login from './routes/login'
-import refresh from './routes/refresh'
 import { AuthStratagy } from './services/authentication'
-
+import auth from './components/auth/routes'
 
 const routes: Array<IRoute> = [
+  ...auth,
   // { method: 'get', path: '/', action: mainRoute},
   // // { method: 'post', path: '/api/v1/', action: fileuploadRoute },
   // // { method: 'get', path: '/output/', action: outputRoute },
+  { method: 'get', path: '/pub/{*}', action: testRoute },
   new Route({
     path: '/test/{id}',
     method: 'get',
     handler: testRoute,
     use: { authenticate: AuthStratagy.jwt }
   }),
-  new Route({
-    path: '/register',
-    method: 'post',
-    handler: register,
-    validate: {
-      body: Schema({
-        type: 'object',
-        properties: {
-          login: {
-            type: 'string',
-          },
-          password: {
-            type: 'string'
-          },
-          email: {
-            type: 'string',
-            format: 'email'
-          }
-        },
-        required: ['login', 'password', 'email']
-      })
-    }
-  }),
-  new Route({
-    path: '/test/{id}',
-    method: 'get',
-    handler: testRoute,
-  }),
-  new Route({
-    path: '/login',
-    method: 'post',
-    handler: login,
-    validate: {
-      body: Schema({
-        type: 'object',
-        properties: {
-          login: {
-            type: 'string',
-          },
-          password: {
-            type: 'string'
-          }
-        },
-        required: ['login', 'password']
-      })
-    }
-  }),
-  new Route({
-    path: '/refresh',
-    method: 'post',
-    handler: refresh,
-    validate: {
-      body: Schema({
-        type: 'object',
-        properties: {
-          token: {
-            type: 'string',
-          }
-        },
-        required: ['token']
-      })
-    },
-  }),
+
   // new Route({
   //   path: '/register',
   //   method: 'post',

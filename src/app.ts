@@ -1,4 +1,3 @@
-import path from 'path';
 import * as config from './config'
 import HttpServer from './lib/http';
 import routes from './routes';
@@ -12,8 +11,6 @@ class App {
 
   constructor() {
     // to do validateConfig(config)
-
-
     this._server = new HttpServer({
       routes,
       port: config.PORT,
@@ -30,8 +27,6 @@ class App {
     this._db = new Pool();
   }
 
-   
-
   public async start() {
     try {
       console.log('Подключаюсь к пострес');
@@ -42,13 +37,13 @@ class App {
         console.log(`Server listening on port ${config.PORT}`)
       })
     } catch (error) {
-      console.log(error.message)
+      console.log(error)
       process.exit(1)
     }
   }
 
   private async stop() {
-
+    //to-do stop services
   }
 
   get server() {

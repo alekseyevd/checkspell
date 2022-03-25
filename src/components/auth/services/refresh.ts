@@ -1,9 +1,11 @@
-import { JWTSECRET } from "../config";
-import { pool } from "../db";
-import { IContext } from "../lib/http/Context";
-import jwt from "../lib/jwt";
+import app from "../../../app"
+import { JWTSECRET } from "../../../config"
+import { IContext } from "../../../lib/http/Context"
+import jwt from "../../../lib/jwt"
+import Route from "../../../lib/puppi/Route"
+import { Schema } from "../../../lib/validation/validate"
 
-export default async function refresh(ctx: IContext) {
+async function refresh(ctx: IContext) {
   const token = ctx.headers.authorization?.split('Bearer ')[1]
   if (!token) throw new Error('Unauthorized')
   const ip = ctx.req.socket.remoteAddress
@@ -14,7 +16,7 @@ export default async function refresh(ctx: IContext) {
 
   const newToken = jwt.update(token, JWTSECRET, 15 * 60000)
 
-  const res = await pool.query(`
+  const res = await app.db.query(`
     UPDATE sessions 
       SET (token, ip, expired_at) =
       ('${newToken}', '${ip}', current_timestamp + (30 * interval '1 minute'))
@@ -29,3 +31,20 @@ export default async function refresh(ctx: IContext) {
   }, JWTSECRET)
   return { token: newToken, refresh: newRefresh }
 }
+
+export default new Route({
+  path: '/refresh',
+  method: 'post',
+  handler: refresh,
+  validate: {
+    body: Schema({
+      type: 'object',
+      properties: {
+        token: {
+          type: 'string',
+        }
+      },
+      required: ['token']
+    })
+  },
+})
