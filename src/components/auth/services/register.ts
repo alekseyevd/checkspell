@@ -8,9 +8,6 @@ import Auth from '../models/Auth';
 export const bodySchema = Schema({
   type: 'object',
   properties: {
-    login: {
-      type: 'string',
-    },
     password: {
       type: 'string'
     },
@@ -19,7 +16,7 @@ export const bodySchema = Schema({
       format: 'email'
     }
   },
-  required: ['login', 'password', 'email']
+  required: ['password', 'email']
 })
 
 async function register(ctx: IContext) {
@@ -27,11 +24,10 @@ async function register(ctx: IContext) {
   var hmac = crypto.createHmac('sha256', salt);
   const {
     password,
-    login,
     email,
   } = ctx.body
   const hashedPwd = hmac.update(password).digest('hex');
-  return Auth.registerUser(login, hashedPwd, salt, email)
+  return Auth.registerUser(hashedPwd, salt, email)
 }
 
 export default new Route({
