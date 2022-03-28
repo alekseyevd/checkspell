@@ -27,7 +27,7 @@ async function login (ctx: IContext) {
     email, password
   } = ctx.body
   const user = await Auth.findUserByEmail(email)
-  if (!user) throw new Error('invalid credentials')
+  if (!user) throw new HttpError(401, 'invalid credentials')
 
   var hmac = crypto.createHmac('sha256', user.salt);
   const hashedPwd = hmac.update(password).digest('hex');

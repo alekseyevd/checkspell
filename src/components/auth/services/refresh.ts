@@ -2,7 +2,7 @@ import app from "../../../app"
 import { JWTSECRET } from "../../../config"
 import { IContext } from "../../../lib/http/Context"
 import HttpError from "../../../lib/http/HttpError"
-import jwt from "../../../lib/jwt"
+import jwt, { JWTError } from "../../../lib/jwt"
 import Route from "../../../lib/puppi/Route"
 import { Schema } from "../../../lib/validation/validate"
 import Auth from "../models/Auth"
@@ -29,7 +29,7 @@ async function refresh(ctx: IContext) {
 
     return { token: newToken, refresh: newRefresh }
   } catch (error) {
-    //to do check intance of jwt error
+    if (error instanceof JWTError) throw new HttpError(401, 'invalid token')
     throw error
   }
 }

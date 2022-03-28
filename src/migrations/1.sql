@@ -7,7 +7,22 @@ CREATE TABLE IF NOT EXISTS persons (
   surname VARCHAR NOT NULL,
   middlename VARCHAR,
   birth_date DATE,
-  sex gender
+  sex gender,
+  email VARCHAR,
+  phone VARCHAR[]
+);
+
+
+CREATE TABLE IF NOT EXISTS identity_document (
+  id integer PRIMARY KEY generated always as identity,
+  user_id integer NOT NULL REFERENCES persons(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  type VARCHAR NOT NULL,
+  data JSONB NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS roles (
+  id integer PRIMARY KEY generated always as identity,
+  name varchar not null
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -16,7 +31,9 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR NOT NULL,
   salt VARCHAR NOT NULL,
   phone VARCHAR UNIQUE,
-  person INTEGER UNIQUE REFERENCES persons(id)
+  person INTEGER UNIQUE REFERENCES persons(id),
+  role INTEGER REFERENCES roles(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS sessions (

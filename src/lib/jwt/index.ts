@@ -1,5 +1,7 @@
 import crypto from 'crypto'
 
+export class JWTError extends Error {}
+
 function sign(obj: any, secret: string, exp?: number) {
   const hmac = crypto.createHmac('sha256', secret)
   const header = JSON.stringify({
@@ -17,7 +19,7 @@ function sign(obj: any, secret: string, exp?: number) {
 
 function decode(token: string) {
   const encoded = token.split('.')
-  if (encoded.length !== 3) throw new Error('invalid token')
+  if (encoded.length !== 3) throw new JWTError('invalid token')
   const payloadEncoded = encoded[1]
   const headerEncoded = encoded[0]
   const hash = encoded[2]
@@ -33,7 +35,7 @@ function decode(token: string) {
       payload
     }
   } catch (error) {
-    throw new Error('invalid token')
+    throw new JWTError('invalid token')
   }
 }
 
@@ -45,7 +47,7 @@ function verify(token: string, secret: string) {
   if (hashed !== hash) throw new Error('Invalid token')
 
   if (payload.exp && new Date(payload.exp).getTime() < Date.now()) {
-    throw new Error('token expired')
+    throw new JWTError('token expired')
   }
 
   return payload
