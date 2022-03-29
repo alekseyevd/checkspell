@@ -3,7 +3,7 @@ import Route from './lib/puppi/Route'
 import { Schema } from './lib/validation/validate'
 import testRoute from './routes/testRoute'
 import { AuthStratagy } from './services/authentication'
-import auth from './components/auth/routes'
+import auth from './components/users/routes'
 
 const routes: Array<IRoute> = [
   ...auth,
