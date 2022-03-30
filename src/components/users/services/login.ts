@@ -23,9 +23,10 @@ const body = Schema({
 })
 
 async function login (ctx: IContext) {
-  const {
-    email, password
-  } = ctx.body
+  const app_token = ctx.headers.authorization
+  if (!app_token) throw new HttpError(400, 'bad request')
+
+  const { email, password } = ctx.body
   const user = await Auth.findUserByEmail(email)
   if (!user) throw new HttpError(401, 'invalid credentials')
 
@@ -33,21 +34,26 @@ async function login (ctx: IContext) {
   const hashedPwd = hmac.update(password).digest('hex');
   if (hashedPwd !== user.password) throw new HttpError(401, 'invalid credentials')
 
-  const token = jwt.sign({ 
+  const access_token = jwt.sign({ 
     user: {
       id: user.id,
       email 
     }
   }, JWTSECRET, 15 * 60000)
 
-  const ip = ctx.req.socket.remoteAddress
-  const session = await Auth.createSession(token, user.id, ip)
+  const ip = ctx.req.socket.remoteAddress || ''
+  const user_agent = ctx.headers['user-agent'] || ''
+  const session = await Auth.createSession(user.id, ip, user_agent, app_token)
 
+  const {rows} = await app.db.query(`select current_timestamp;;`)
+  console.log(rows);
+  
+  
   const refresh = jwt.sign({
     id: session.id,
     exp: session.expired_at
   }, JWTSECRET)
-  return { token, refresh }
+  return { token: access_token, refresh }
 }
 
 export default new Route({

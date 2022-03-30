@@ -27,7 +27,7 @@ export default class HttpServer {
         const p = r.path.match(/\{[^\s/]+\}/g)?.map(k => k.slice(1, -1)) || []
         if (p.length) {
           this._matching.push({
-            path: new RegExp('^' + r.path.replace(/\{[^\s/]+\}/g, '([\\w-]+)') + '$'),
+            path: new RegExp('^' + r.path.replace(/\{[^\s/]+\}/g, '([\\w.=-]+)') + '$'),
             method: r.method,
             params: p,
             action: r.action,

@@ -28,12 +28,12 @@ class Auth {
     return rows[0]
   }
 
-  async createSession(token: string, user_id: number, ip: string | undefined) {
-    const expired_at = `current_timestamp + (30 * interval '1 minute')`
+  async createSession(user_id: number, ip: string | undefined, user_agent: string, app_token: string) {
+    const expired_at = `current_timestamp + (60 * interval '1 minute')`
     const { rows } = await app.db.query(`
-      INSERT INTO sessions (token, user_id, ip, expired_at)
+      INSERT INTO sessions (user_id, ip, user_agent, app_token, expired_at)
         VALUES (
-          '${token}', ${user_id}, '${ip}', ${expired_at}
+          ${user_id}, '${ip}', '${user_agent}', '${app_token}', ${expired_at}
         ) RETURNING id, expired_at;
     `)
     return rows[0]

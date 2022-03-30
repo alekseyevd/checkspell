@@ -15,7 +15,7 @@ const routes: Array<IRoute> = [
     path: '/test/{id}',
     method: 'get',
     handler: testRoute,
-    use: { authenticate: AuthStratagy.jwt }
+    //use: { authenticate: AuthStratagy.jwt }
   }),
 
   // new Route({

@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS persons (
   phone VARCHAR[]
 );
 
-
 CREATE TABLE IF NOT EXISTS identity_document (
   id integer PRIMARY KEY generated always as identity,
   user_id integer NOT NULL REFERENCES persons(id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -38,10 +37,12 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS sessions (
   id integer PRIMARY KEY generated always as identity,
-  token VARCHAR NOT NULL,
   user_id integer REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
   ip varchar NOT NULL,
+  user_agent VARCHAR NOT NULL,
+  app_token VARCHAR NOT NULL,
   started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   expired_at TIMESTAMP NOT NULL
 );
 

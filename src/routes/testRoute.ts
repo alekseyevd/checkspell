@@ -13,7 +13,8 @@ export default async function testRoute (context: IContext) {
 
   //context.files[key].buffer.toString()
   let body = await context.body
-  console.log(context.get('user'));
+  //console.log(context.get('user'));
+  console.log(context.headers);
   
   return context
   

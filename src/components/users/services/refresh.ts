@@ -8,30 +8,32 @@ import { Schema } from "../../../lib/validation/validate"
 import Auth from "../models/Auth"
 
 async function refresh(ctx: IContext) {
-  const token = ctx.headers.authorization?.split('Bearer ')[1]
-  if (!token) throw new HttpError(401, 'Unauthorized')
 
-  const ip = ctx.req.socket.remoteAddress
-  const refresh = ctx.body.token
+  return jwt.verify(ctx.query.token, JWTSECRET)
+  // const token = ctx.headers.authorization?.split('Bearer ')[1]
+  // if (!token) throw new HttpError(401, 'Unauthorized')
 
-  try {
-    const { id } = jwt.verify(refresh, JWTSECRET)
-    if (!id) throw new HttpError(401, 'invalid token')
+  // const ip = ctx.req.socket.remoteAddress
+  // const refresh = ctx.body.token
 
-    const newToken = jwt.update(token, JWTSECRET, 15 * 60000)
-    const session = await Auth.updateSession(id, token, newToken, ip)
-    if (!session) throw new HttpError(401, 'invalid token')
+  // try {
+  //   const { id } = jwt.verify(refresh, JWTSECRET)
+  //   if (!id) throw new HttpError(401, 'invalid token')
 
-    const newRefresh = jwt.sign({
-      id: session.id,
-      exp: session.expired_at
-    }, JWTSECRET)
+  //   const newToken = jwt.update(token, JWTSECRET, 15 * 60000)
+  //   const session = await Auth.updateSession(id, token, newToken, ip)
+  //   if (!session) throw new HttpError(401, 'invalid token')
 
-    return { token: newToken, refresh: newRefresh }
-  } catch (error) {
-    if (error instanceof JWTError) throw new HttpError(401, 'invalid token')
-    throw error
-  }
+  //   const newRefresh = jwt.sign({
+  //     id: session.id,
+  //     exp: session.expired_at
+  //   }, JWTSECRET)
+
+  //   return { token: newToken, refresh: newRefresh }
+  // } catch (error) {
+  //   if (error instanceof JWTError) throw new HttpError(401, 'invalid token')
+  //   throw error
+  // }
 }
 
 export default new Route({
@@ -39,7 +41,7 @@ export default new Route({
   method: 'post',
   handler: refresh,
   validate: {
-    body: Schema({
+    query: Schema({
       type: 'object',
       properties: {
         token: {
