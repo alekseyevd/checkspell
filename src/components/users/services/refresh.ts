@@ -8,37 +8,43 @@ import { Schema } from "../../../lib/validation/validate"
 import Auth from "../models/Auth"
 
 async function refresh(ctx: IContext) {
+  const app_token = ctx.headers.authorization?.split('Bearer ')[1]
+  if (!app_token) throw new HttpError(401, 'Unauthorized')
 
-  return jwt.verify(ctx.query.token, JWTSECRET)
-  // const token = ctx.headers.authorization?.split('Bearer ')[1]
-  // if (!token) throw new HttpError(401, 'Unauthorized')
+  const ip = ctx.req.socket.remoteAddress
+  const refresh = ctx.query.token
 
-  // const ip = ctx.req.socket.remoteAddress
-  // const refresh = ctx.body.token
+  try {
+    const { id } = jwt.verify(refresh, JWTSECRET)
+    if (!id) throw new HttpError(401, 'invalid token')
 
-  // try {
-  //   const { id } = jwt.verify(refresh, JWTSECRET)
-  //   if (!id) throw new HttpError(401, 'invalid token')
+    //const newToken = jwt.update(token, JWTSECRET, 15 * 60000)
+    const session = await Auth.updateSession(id, app_token, ip)
+    if (!session) throw new HttpError(401, 'invalid app_token')
 
-  //   const newToken = jwt.update(token, JWTSECRET, 15 * 60000)
-  //   const session = await Auth.updateSession(id, token, newToken, ip)
-  //   if (!session) throw new HttpError(401, 'invalid token')
+    const user = await Auth.findUserById(session.id)
+    const access_token = jwt.sign({
+      user: {
+        id: user.id,
+        email: user.email
+      }
+    }, JWTSECRET, 15 * 60000)
 
-  //   const newRefresh = jwt.sign({
-  //     id: session.id,
-  //     exp: session.expired_at
-  //   }, JWTSECRET)
+    const newRefresh = jwt.sign({
+      id: session.id,
+      exp: session.expired_at
+    }, JWTSECRET)
 
-  //   return { token: newToken, refresh: newRefresh }
-  // } catch (error) {
-  //   if (error instanceof JWTError) throw new HttpError(401, 'invalid token')
-  //   throw error
-  // }
+    return { token: access_token, refresh: newRefresh }
+  } catch (error) {
+    if (error instanceof JWTError) throw new HttpError(401, 'invalid token')
+    throw error
+  }
 }
 
 export default new Route({
   path: '/refresh',
-  method: 'post',
+  method: 'get',
   handler: refresh,
   validate: {
     query: Schema({

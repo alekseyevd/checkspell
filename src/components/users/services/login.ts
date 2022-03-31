@@ -44,10 +44,6 @@ async function login (ctx: IContext) {
   const ip = ctx.req.socket.remoteAddress || ''
   const user_agent = ctx.headers['user-agent'] || ''
   const session = await Auth.createSession(user.id, ip, user_agent, app_token)
-
-  const {rows} = await app.db.query(`select current_timestamp;;`)
-  console.log(rows);
-  
   
   const refresh = jwt.sign({
     id: session.id,

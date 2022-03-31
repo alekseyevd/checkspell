@@ -22,6 +22,11 @@ class Auth {
     }  
   }
 
+  async findUserById(id: number) {
+    const { rows } = await app.db.query(`SELECT * FROM users WHERE id = ${id};`)
+    return rows[0]
+  }
+
   async findUserByEmail(email: string) {
     const sql = `SELECT id, email, salt, password FROM users WHERE email in ($1) LIMIT 1;`
     const { rows } = await app.db.query(sql, [email])
@@ -39,14 +44,23 @@ class Auth {
     return rows[0]
   }
 
-  async updateSession(id: number, token: string, newToken: string, ip: string | undefined) {
+  async updateSession(id: number, app_token: string, ip: string | undefined) {
     const { rows } = await app.db.query(`
       UPDATE sessions 
-        SET (token, ip, expired_at) =
-        ('${newToken}', '${ip}', current_timestamp + (30 * interval '1 minute'))
-        WHERE id = $1 and token = $2
-        RETURNING id, expired_at;
-    `, [id, token])
+        SET (ip, updated_at, expired_at) =
+        ('${ip}', current_timestamp, current_timestamp + (30 * interval '1 minute'))
+        WHERE id = $1 and app_token = $2
+        RETURNING id, user_id, expired_at;
+    `, [id, app_token])
+    return rows[0]
+  }
+
+  async logout(id: number) {
+    const { rows } = await app.db.query(`
+      DELETE from sessions 
+        WHERE id = $1
+        RETURNING id, user_id, expired_at;
+    `, [id])
     return rows[0]
   }
 }
