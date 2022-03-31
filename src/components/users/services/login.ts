@@ -37,7 +37,8 @@ async function login (ctx: IContext) {
   const access_token = jwt.sign({ 
     user: {
       id: user.id,
-      email 
+      email,
+      role: user.role 
     }
   }, JWTSECRET, 15 * 60000)
 

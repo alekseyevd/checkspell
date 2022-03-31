@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS roles (
   name varchar not null
 );
 
+INSERT INTO roles (name) VALUES ('administrator'), ('user');
+
 CREATE TABLE IF NOT EXISTS users (
   id integer PRIMARY KEY generated always as identity,
   email VARCHAR UNIQUE NOT NULL,
@@ -31,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   salt VARCHAR NOT NULL,
   phone VARCHAR UNIQUE,
   person INTEGER UNIQUE REFERENCES persons(id),
-  role INTEGER REFERENCES roles(id),
+  role INTEGER NOT NULL REFERENCES roles(id),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

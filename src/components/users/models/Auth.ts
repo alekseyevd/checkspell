@@ -28,7 +28,7 @@ class Auth {
   }
 
   async findUserByEmail(email: string) {
-    const sql = `SELECT id, email, salt, password FROM users WHERE email in ($1) LIMIT 1;`
+    const sql = `SELECT id, email, salt, password, role FROM users WHERE email in ($1) LIMIT 1;`
     const { rows } = await app.db.query(sql, [email])
     return rows[0]
   }
