@@ -1,8 +1,9 @@
 import * as config from './config'
 import HttpServer from './lib/http';
 import routes from './routes';
-import { Pool } from 'pg';
+import { DatabaseError, Pool } from 'pg';
 import setUpAuthenticationStratagies from './services/authentication';
+import { DataBase } from './components/users/models/Db';
 
 
 class App {
@@ -22,9 +23,8 @@ class App {
     setUpAuthenticationStratagies()
     //to do setup acces control strategy
 
-
-
-    this._db = new Pool();
+    //this._db = new Pool();
+    this._db = new DataBase().pool
   }
 
   public async start() {
