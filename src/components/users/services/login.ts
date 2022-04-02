@@ -7,7 +7,7 @@ import jwt from "../../../lib/jwt";
 import Route from '../../../lib/puppi/Route';
 import { Schema } from '../../../lib/validation/validate';
 import Auth from '../models/Auth';
-import { userModel } from '../models/User';
+import UserModel from '../models/User';
 
 const body = Schema({
   type: 'object',
@@ -28,8 +28,8 @@ async function login (ctx: IContext) {
   if (!app_token) throw new HttpError(400, 'bad request')
 
   const { email, password } = ctx.body
-  const user = await userModel.findByEmail(email)
-  //const user = await Auth.findUserByEmail(email)
+ // const user = await userModel.findByEmail(email)
+  const user = await Auth.findUserByEmail(email)
   if (!user) throw new HttpError(401, 'invalid credentials')
 
   var hmac = crypto.createHmac('sha256', user.salt);

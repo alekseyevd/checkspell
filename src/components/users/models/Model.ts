@@ -5,8 +5,8 @@ import db from './Db'
 export class Model<T> {
   table: string
 
-  constructor(table: string) {
-    this.table = table
+  constructor(name: string) {
+    this.table = name
   }
 
   async findAll(params: any = {}): Promise<Array<T>> {
