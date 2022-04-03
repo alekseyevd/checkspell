@@ -1,29 +1,7 @@
-import { Pool } from "pg";
+import { Pool } from "pg"
 
-export class DataBase {
-  static instance: DataBase
-
-  pool: Pool
-
-  constructor() {
-    if (DataBase.instance) {
-      this.pool = DataBase.instance.pool
-      return 
-    } 
-    this.pool = new Pool()
-    DataBase.instance = this
-  }
-
-  static getInstance() {
-    return DataBase.instance.pool
-  }
-
-  connect() {
-    this.pool.connect()
-  }
-}
-
-class Cursor {
+export default class Cursor {
+  private _db: Pool
   private fields: string[]
   private table: string | undefined
   private whereClause: string | undefined
@@ -31,9 +9,9 @@ class Cursor {
   private limitClause: number | undefined
   private offsetClause: number | undefined
 
-  constructor(params: any) {
+  constructor(params: any, db: Pool) {
     this.fields = params.fields || ['*']
-
+    this._db = db
   }
 
   from(name: string) {
@@ -79,18 +57,7 @@ class Cursor {
     }
     console.log(sql);
     
-    const { rows } = await DataBase.instance.pool.query(sql)
+    const { rows } = await this._db.query(sql)
     return rows
   }
-}
-
-function select(fields: Array<string>) {
-  return new Cursor({
-    fields
-  })
-}
-
-export default {
-  query: (str: string) => DataBase.instance.pool.query(str),
-  select
 }

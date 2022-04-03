@@ -1,16 +1,16 @@
-import app from '../../../app'
-import db from './Db'
-
+import { DataBase } from "."
 
 export class Model<T> {
   table: string
+  db: DataBase
 
   constructor(name: string) {
     this.table = name
+    this.db = DataBase.instance
   }
 
   async findAll(params: any = {}): Promise<Array<T>> {
-    return await db.select(params.fields)
+    return await this.db.select(params.fields)
       .from(this.table)
       .where(params.where)
       .limit(params.limit)
@@ -18,7 +18,7 @@ export class Model<T> {
   }
 
   async findById(id: number) {
-    return await db.select(['*'])
+    return await this.db.select(['*'])
       .from(this.table)
       .where(`id = ${id}`)
       .limit(1)
@@ -30,26 +30,8 @@ export class Model<T> {
     const values = Object.values(params).map(v => `'${v}'`).join(', ')
     const sql = `INSERT INTO ${this.table} (${keys}) VALUES (${values}) RETURNING id;`
     
-    return await db.query(sql)
+    return await this.db.query(sql)
   }
 }
 
-export function connect(name: string, entity: any) {
-  const model = new Model(name)
-
-  const Entyty = class extends entity {
-    constructor() {
-      super()
-    }
-
-    async save() {
-      await model.create(this)
-    }
-  }
-
-  return {
-    model,
-    entity: Entyty
-  }
-}
 

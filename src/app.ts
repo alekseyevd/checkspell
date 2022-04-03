@@ -3,7 +3,8 @@ import HttpServer from './lib/http';
 import routes from './routes';
 import { DatabaseError, Pool } from 'pg';
 import setUpAuthenticationStratagies from './services/authentication';
-import { DataBase } from './components/users/models/Db';
+import { DataBase } from './lib/database';
+
 
 
 class App {

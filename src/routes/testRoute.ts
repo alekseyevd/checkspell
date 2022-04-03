@@ -1,4 +1,5 @@
-import UserModel, { getModel } from '../components/users/models/User';
+import UserModel from '../components/users/models/User';
+import { getModel } from '../lib/database';
 import { IContext } from '../lib/http/Context';
 
 export default async function testRoute (context: IContext) {

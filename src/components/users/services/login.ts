@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import app from "../../../app";
 import { JWTSECRET } from "../../../config";
+import { getModel } from '../../../lib/database';
 import { IContext } from "../../../lib/http/Context";
 import HttpError from '../../../lib/http/HttpError';
 import jwt from "../../../lib/jwt";
@@ -28,8 +29,8 @@ async function login (ctx: IContext) {
   if (!app_token) throw new HttpError(400, 'bad request')
 
   const { email, password } = ctx.body
- // const user = await userModel.findByEmail(email)
-  const user = await Auth.findUserByEmail(email)
+  const user = await getModel(UserModel).findByEmail(email)
+  //const user = await Auth.findUserByEmail(email)
   if (!user) throw new HttpError(401, 'invalid credentials')
 
   var hmac = crypto.createHmac('sha256', user.salt);

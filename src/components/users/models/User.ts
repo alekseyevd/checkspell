@@ -1,27 +1,23 @@
-import  db from "./Db";
-import { Model } from "./Model";
+import { Model, table } from "../../../lib/database"
+
 
 interface User {
   id: number,
-  name: string
+  email: string,
+  password: string,
+  salt: string,
+  phone: string,
+  person: number,
+  role: number
+  name: string,
+  created_at: Date
 }
-
-function table(name: string) {
-  return function<T extends {new (...args: any[]): {}}> (Constructor: T) {
-    return class extends Constructor {
-      constructor(...args: any) {
-        super(name)
-      }
-    }
-  }
-}
-export interface Type<T> extends Function { new (...args: any[]): T; }
 
 @table('users')
 export default class UserModel extends Model<User> {
 
   async findByEmail(email: string): Promise<User> {
-    const rows = await db.select(['*'])
+    const rows = await this.db.select(['*'])
       .from(this.table)
       .where(`email = '${email}'`)
       .limit(1)
@@ -30,17 +26,4 @@ export default class UserModel extends Model<User> {
   }
 }
 
-// export function getModel<T extends Model<any>(constructor: T ) {
-//   return new constructor()
-// }
-interface Class<T> {
-  new(...args: any[]): T;
-}
-
-export function getModel<T>(TheClass: Class<T>, ...args: any[]): T {
-  return new TheClass(...args);
-}
-
-
-//export const userModel = new UserModel()
 
