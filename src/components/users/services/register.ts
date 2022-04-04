@@ -1,9 +1,13 @@
 
 import crypto from 'crypto'
+import { getModel } from '../../../lib/database';
 import { IContext } from '../../../lib/http/Context';
 import Route from '../../../lib/puppi/Route';
 import { Schema } from '../../../lib/validation/validate';
-import Auth from '../models/Auth';
+import { User } from '../models/User';
+import UserModel from '../models/User';
+import IErrnoException from '../../../interfaces/IErrnoException';
+import HttpError from '../../../lib/http/HttpError';
 
 export const bodySchema = Schema({
   type: 'object',
@@ -19,7 +23,7 @@ export const bodySchema = Schema({
   required: ['password', 'email']
 })
 
-async function register(ctx: IContext) {
+async function register(ctx: IContext): Promise<User> {
   var salt = crypto.randomBytes(128).toString('base64')
   var hmac = crypto.createHmac('sha256', salt);
   const {
@@ -27,7 +31,29 @@ async function register(ctx: IContext) {
     email,
   } = ctx.body
   const hashedPwd = hmac.update(password).digest('hex');
-  return Auth.registerUser(hashedPwd, salt, email)
+
+  const model = getModel(UserModel)
+  const entity = model.create()
+ 
+  try {
+    const user = await model.save({
+      ...entity,
+      email,
+      salt,
+      password: hashedPwd
+    })
+  
+    return user
+  } catch (error) {
+   
+    const er = error as IErrnoException
+    if (er.code === "23505") {
+      throw new HttpError(409, 'user already exists')
+    }
+    throw error
+  }
+
+  //return Auth.registerUser(hashedPwd, salt, email)
 }
 
 export default new Route({

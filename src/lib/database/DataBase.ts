@@ -1,5 +1,6 @@
 import { Pool } from "pg"
 import Cursor from "./Cursor"
+import { Insert } from "./Insert"
 
 export class DataBase {
   static instance: DataBase
@@ -25,6 +26,10 @@ export class DataBase {
 
   select(fields: Array<string>) {
     return new Cursor({ fields }, this.pool)
+  }
+
+  insert() {
+    return new Insert(this.pool)
   }
 
   query(sql: string) {

@@ -1,16 +1,16 @@
 import { Model, table } from "../../../lib/database"
+import { Entity } from "../../../lib/database/Model"
 
 
-interface User {
+export interface User extends Entity {
   id: number,
   email: string,
   password: string,
   salt: string,
-  phone: string,
-  person: number,
+  phone: string | null,
+  person: number | null,
   role: number
-  name: string,
-  created_at: Date
+  created_at: Date | null
 }
 
 @table('users')

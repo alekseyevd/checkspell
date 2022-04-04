@@ -1,6 +1,10 @@
 import { DataBase } from "."
 
-export class Model<T> {
+export type Entity = {
+  [key: string]: string | number | Date | null 
+}
+
+export class Model<T extends Entity> {
   table: string
   db: DataBase
 
@@ -9,7 +13,7 @@ export class Model<T> {
     this.db = DataBase.instance
   }
 
-  async findAll(params: any = {}): Promise<Array<T>> {
+  async findAll(params: any = {}): Promise<T[]> {
     return await this.db.select(params.fields)
       .from(this.table)
       .where(params.where)
@@ -17,20 +21,32 @@ export class Model<T> {
       .exec()
   }
 
-  async findById(id: number) {
-    return await this.db.select(['*'])
+  async findById(id: number): Promise<T[]> {
+    const result = await this.db.select(['*'])
       .from(this.table)
       .where(`id = ${id}`)
       .limit(1)
       .exec()
+    return result[0]
   }
 
-  async create(params: any) {
-    const keys = Object.keys(params).join(', ')
-    const values = Object.values(params).map(v => `'${v}'`).join(', ')
-    const sql = `INSERT INTO ${this.table} (${keys}) VALUES (${values}) RETURNING id;`
+  create() {
+    return {} as T
+  }
+
+  async save(params: T): Promise<T> {
+    return await this.db
+      .insert()
+      .into(this.table)
+      .values(params)
+      .exec()
+
+    // const keys = Object.keys(params).join(', ')
+    // const values = Object.values(params).map(v => `'${v}'`).join(', ')
+    // const sql = `INSERT INTO ${this.table} (${keys}) VALUES (${values}) RETURNING *;`
     
-    return await this.db.query(sql)
+    // const { rows } = await this.db.query(sql)
+    // return rows[0]
   }
 }
 
