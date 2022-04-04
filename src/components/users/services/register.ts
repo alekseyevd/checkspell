@@ -40,7 +40,8 @@ async function register(ctx: IContext): Promise<User> {
       ...entity,
       email,
       salt,
-      password: hashedPwd
+      password: hashedPwd,
+      role: 1
     })
   
     return user

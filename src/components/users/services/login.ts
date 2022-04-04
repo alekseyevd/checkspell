@@ -8,6 +8,7 @@ import jwt from "../../../lib/jwt";
 import Route from '../../../lib/puppi/Route';
 import { Schema } from '../../../lib/validation/validate';
 import Auth from '../models/Auth';
+import SessionModel from '../models/Session';
 import UserModel from '../models/User';
 
 const body = Schema({
@@ -25,8 +26,8 @@ const body = Schema({
 })
 
 async function login (ctx: IContext) {
-  const app_token = ctx.headers.authorization
-  if (!app_token) throw new HttpError(400, 'bad request')
+  const app_token = ctx.headers['app_token'] as string
+  if (!app_token) throw new HttpError(400, 'bad request (invalid app_token)')
 
   const { email, password } = ctx.body
   const user = await getModel(UserModel).findByEmail(email)
@@ -47,8 +48,8 @@ async function login (ctx: IContext) {
 
   const ip = ctx.req.socket.remoteAddress || ''
   const user_agent = ctx.headers['user-agent'] || ''
-  const session = await Auth.createSession(user.id, ip, user_agent, app_token)
-  
+  const session = await getModel(SessionModel).createSession(user.id, ip, user_agent, app_token)
+
   const refresh = jwt.sign({
     id: session.id,
     exp: session.expired_at

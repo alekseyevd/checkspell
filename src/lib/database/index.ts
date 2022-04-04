@@ -1,5 +1,6 @@
 export { DataBase } from './DataBase'
 export { Model } from './Model'
+export { Entity } from './Model'
 export { table } from './table'
 export { getModel } from './getModel'
 

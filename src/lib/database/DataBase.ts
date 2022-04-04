@@ -32,8 +32,8 @@ export class DataBase {
     return new Insert(this.pool)
   }
 
-  query(sql: string) {
-    return this.pool.query(sql)
+  query(sql: string, args: any[] = []) {
+    return this.pool.query(sql, args)
   }
 
 }
