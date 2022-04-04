@@ -26,6 +26,11 @@ export default class SessionModel extends Model<Session> {
   }
 
   async updateSession(id: number, app_token: string, ip: string | undefined) {
+    // this.db.update(this.table)
+    //   .set([`(ip, updated_at, expired_at) = ('${ip}', current_timestamp, current_timestamp + (30 * interval '1 minute'))`])
+    //   .where('id = $1 and app_token = $2')
+    //   .exec()
+
     const { rows } = await this.db.query(`
       UPDATE sessions 
         SET (ip, updated_at, expired_at) =
