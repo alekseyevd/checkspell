@@ -1,7 +1,7 @@
 import { DataBase } from "."
 
 export type Entity = {
-  [key: string]: string | number | Date | null 
+  [key: string]: string | number | Date | null | Array<any>
 }
 
 export class Model<T extends Entity> {
@@ -21,7 +21,7 @@ export class Model<T extends Entity> {
       .exec()
   }
 
-  async findById(id: number): Promise<T[]> {
+  async findById(id: number): Promise<T> {
     const result = await this.db.select(['*'])
       .from(this.table)
       .where(`id = ${id}`)

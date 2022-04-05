@@ -25,12 +25,7 @@ export default class SessionModel extends Model<Session> {
     return rows[0]
   }
 
-  async updateSession(id: number, app_token: string, ip: string | undefined) {
-    // this.db.update(this.table)
-    //   .set([`(ip, updated_at, expired_at) = ('${ip}', current_timestamp, current_timestamp + (30 * interval '1 minute'))`])
-    //   .where('id = $1 and app_token = $2')
-    //   .exec()
-
+  async updateSession(id: number, app_token: string, ip: string | undefined): Promise<Pick<Session, 'id' | 'user_id' |'expired_at'>> {
     const { rows } = await this.db.query(`
       UPDATE sessions 
         SET (ip, updated_at, expired_at) =
@@ -38,6 +33,15 @@ export default class SessionModel extends Model<Session> {
         WHERE id = $1 and app_token = $2
         RETURNING id, user_id, expired_at;
     `, [id, app_token])
+    return rows[0]
+  }
+
+  async deleteSession(id: number) {
+    const { rows } = await this.db.query(`
+      DELETE from sessions 
+        WHERE id = $1
+        RETURNING id, user_id, expired_at;
+    `, [id])
     return rows[0]
   }
 

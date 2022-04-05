@@ -1,11 +1,12 @@
-import app from "../../../app"
 import { JWTSECRET } from "../../../config"
+import { getModel } from "../../../lib/database"
 import { IContext } from "../../../lib/http/Context"
 import HttpError from "../../../lib/http/HttpError"
 import jwt, { JWTError } from "../../../lib/jwt"
 import Route from "../../../lib/puppi/Route"
 import { Schema } from "../../../lib/validation/validate"
-import Auth from "../models/Auth"
+import SessionModel from "../models/Session"
+import UserModel from "../models/User"
 
 async function refresh(ctx: IContext) {
   const app_token = ctx.headers.authorization?.split('Bearer ')[1]
@@ -18,11 +19,10 @@ async function refresh(ctx: IContext) {
     const { id } = jwt.verify(refresh, JWTSECRET)
     if (!id) throw new HttpError(401, 'invalid token')
 
-    //const newToken = jwt.update(token, JWTSECRET, 15 * 60000)
-    const session = await Auth.updateSession(id, app_token, ip)
+    const session = await getModel(SessionModel).updateSession(id, app_token, ip)
     if (!session) throw new HttpError(401, 'invalid app_token')
 
-    const user = await Auth.findUserById(session.id)
+    const user = await getModel(UserModel).findById(session.user_id)
     const access_token = jwt.sign({
       user: {
         id: user.id,

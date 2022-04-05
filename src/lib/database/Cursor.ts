@@ -39,7 +39,7 @@ export default class Cursor {
     return this
   }
 
-  async exec() {
+  async exec(values: string[] | undefined = undefined) {
     const { table, whereClause, orderBy, limitClause, offsetClause } = this;
     const fields = this.fields.join(', ');
     let sql = `SELECT ${fields} FROM ${table}`;
@@ -57,7 +57,7 @@ export default class Cursor {
     }
     console.log(sql);
     
-    const { rows } = await this._db.query(sql)
+    const { rows } = await this._db.query(sql, values)
     return rows
   }
 }

@@ -1,10 +1,11 @@
 import { JWTSECRET } from "../../../config";
+import { getModel } from "../../../lib/database";
 import { IContext } from "../../../lib/http/Context";
 import HttpError from "../../../lib/http/HttpError";
 import jwt from "../../../lib/jwt";
 import Route from "../../../lib/puppi/Route";
 import { Schema } from "../../../lib/validation/validate";
-import Auth from "../models/Auth";
+import SessionModel from "../models/Session";
 
 async function logout(ctx: IContext) {
   const token = ctx.body.token
@@ -12,7 +13,7 @@ async function logout(ctx: IContext) {
   const { id } = jwt.verify(token, JWTSECRET)
   if (!id) throw new HttpError(401, 'invalid token')
 
-  const session = await Auth.logout(id)
+  const session = await getModel(SessionModel).deleteSession(id)
   if (!session) throw new HttpError(401, 'invalid token')
 
   return 'ok'

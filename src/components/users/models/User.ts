@@ -8,7 +8,6 @@ export interface User extends Entity {
   password: string,
   salt: string,
   phone: string | null,
-  person: number | null,
   role: number
   created_at: Date | null
 }

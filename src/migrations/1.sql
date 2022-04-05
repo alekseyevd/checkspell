@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE gender AS ENUM ('male', 'female');
 CREATE TABLE IF NOT EXISTS persons (
   id integer PRIMARY KEY generated always as identity,
+  user_id INTEGER UNIQUE REFERENCES users(id),
   name VARCHAR NOT NULL,
   surname VARCHAR NOT NULL,
   middlename VARCHAR,
@@ -32,7 +33,6 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR NOT NULL,
   salt VARCHAR NOT NULL,
   phone VARCHAR UNIQUE,
-  person INTEGER UNIQUE REFERENCES persons(id),
   role INTEGER NOT NULL REFERENCES roles(id),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
