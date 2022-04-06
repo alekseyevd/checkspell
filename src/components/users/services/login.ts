@@ -7,7 +7,6 @@ import HttpError from '../../../lib/http/HttpError';
 import jwt from "../../../lib/jwt";
 import Route from '../../../lib/puppi/Route';
 import { Schema } from '../../../lib/validation/validate';
-import Auth from '../models/Auth';
 import SessionModel from '../models/Session';
 import UserModel from '../models/User';
 

@@ -1,3 +1,4 @@
+import { get } from "http";
 import { Entity, getModel, Model } from "../../../../lib/database";
 import { Class } from "../../../../lib/database/getModel";
 import PersonsModel from "../models/Person";
@@ -34,7 +35,14 @@ class Controller<T extends Model<Entity>> {
 
 @instance(PersonsModel)
 export default class PersonController extends Controller<PersonsModel> {
+
+  @get('/')
   async send() {
     this.model.findAll()
+  }
+
+
+  async find(): Promise<Entity[]> {
+    return super.find()
   }
 }
