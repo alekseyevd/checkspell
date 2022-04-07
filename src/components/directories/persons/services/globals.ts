@@ -4,3 +4,5 @@ type IRoute1 = {
 }
 
 export const routes: IRoute1[] = []
+
+export const controllerRoutes: { [k: string]: any} = {}
