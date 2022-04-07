@@ -13,6 +13,7 @@ class App {
 
   constructor() {
     // to do validateConfig(config)
+    this._db = new DataBase().pool
     this._server = new HttpServer({
       routes,
       port: config.PORT,
@@ -25,7 +26,7 @@ class App {
     //to do setup acces control strategy
 
     //this._db = new Pool();
-    this._db = new DataBase().pool
+    
   }
 
   public async start() {

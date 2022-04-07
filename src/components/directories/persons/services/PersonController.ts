@@ -9,6 +9,7 @@ function instance<T>(Model: T) {
   //return function (Constructor: Class<Controller<T>>) {
   return function<K extends {new (...args: any[]): {}}> (Constructor: K) {
     return class extends Constructor {
+      static model = Model
       constructor(...args: any) {
         super(Model)
       }
@@ -17,9 +18,9 @@ function instance<T>(Model: T) {
 }
 
 class Controller<T extends Model<Entity>> {
-  model: T
+  static model: Class<any>
   constructor(model: Class<T>) {
-    this.model = getModel(model)
+    //this.model = getModel(model)
   }
 
   getRoutes() {
@@ -30,8 +31,13 @@ class Controller<T extends Model<Entity>> {
     })
   }
 
+  get model(): T {
+    const c = this.constructor as any
+    return getModel(c.model) 
+  }
+
   async find() {
-    return await getModel(UserModel).findAll()
+    return this.model.findAll()
   }
 
   async findOne() {}
