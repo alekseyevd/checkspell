@@ -15,20 +15,20 @@ class Controller<T> {
     })
   }
 
-  get model(): T {
+  model(): T {
     const c = this.constructor as any
     return getModel(c.model) 
   }
 }
 
-export default class DirectoryController<T> extends Controller<Model<Entity>> {
-  get model(): T {
+export default class DirectoryController<T extends Model<Entity>> extends Controller<Model<Entity>> {
+  model(): T {
     const c = this.constructor as any
     return getModel(c.model) 
   }
 
   async find() {
-    return this.model.findAll()
+    return this.model().findAll()
   }
 
   async findOne() {}
@@ -40,10 +40,16 @@ export default class DirectoryController<T> extends Controller<Model<Entity>> {
   async delete() {}
 }
 
-export class PersonController extends DirectoryController {
+export class PersonController extends DirectoryController<PersonsModel> {
   static model = PersonsModel
 
   async find(){
     return super.find()
+  }
+
+  async send(ctx: IContext) {
+    console.log('send', ctx.get('user'));
+    return this.model().findAll()
+
   }
 }
