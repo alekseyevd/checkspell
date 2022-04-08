@@ -2,6 +2,7 @@ import { Entity, getModel, Model } from "../../../../lib/database";
 import { Class } from "../../../../lib/database/getModel";
 import { IContext } from "../../../../lib/http/Context";
 import Route from "../../../../lib/puppi/Route";
+import { Schema } from "../../../../lib/validation/validate";
 import PersonsModel from "../models/Person";
 import { controllerRoutes, routes } from "./globals";
 
@@ -25,16 +26,13 @@ class Controller<T extends Model<Entity>> {
   // }
 
   getRoutes() {
+    console.log(controllerRoutes[this.constructor.name]);
+    
     return controllerRoutes[this.constructor.name].map((r: any) => {
       const key = r.handler as string
       r.handler = this.constructor.prototype[key].bind(this)
       return new Route(r)
     })
-    // return routes.map(r => {
-    //   const key = r.handler as string
-    //   r.handler = this.constructor.prototype[key].bind(this)
-    //   return new Route(r)
-    // })
   }
 
   get model(): T {
@@ -58,21 +56,22 @@ class Controller<T extends Model<Entity>> {
 function get(route: string) {
   return function(target: any, prop: string, descriptor: PropertyDescriptor): void {
     console.log('method', target.constructor.name);
+    if (!controllerRoutes[target.constructor.name]) {
+      controllerRoutes[target.constructor.name] = []
+    }
     controllerRoutes[target.constructor.name].push({
       method: 'get',
       path: route,
       handler: prop
     })
-    // routes.push({
-    //   method: 'get',
-    //   path: route,
-    //   handler: prop
-    // })
   }
 }
 function post(route: string) {
   return function(target: any, prop: string, descriptor: PropertyDescriptor): void {
-    routes.push({
+    if (!controllerRoutes[target.constructor.name]) {
+      controllerRoutes[target.constructor.name] = []
+    }
+    controllerRoutes[target.constructor.name].push({
       method: 'post',
       path: route,
       handler: prop
@@ -104,12 +103,38 @@ function access() {
   }
 }
 
-//@route('/api/persons')
-@instance(PersonsModel)
-export default class PersonController extends Controller<PersonsModel> {
-  //static model = PersonsModel
+function route(path: string) {
+  return function(constructor: Function): void {
+    if (!controllerRoutes[constructor.name]) {
+      controllerRoutes[constructor.name] = []
+    }
+    controllerRoutes[constructor.name] = controllerRoutes[constructor.name].map((r: any) => {
+      r.path = path + r.path
+      return r
+    })
+  }
+}
 
-  @post('/')
+function validateBody(jsonSchema: any) {
+  return function(target: any, prop: string, descriptor: PropertyDescriptor): void {
+    const original = descriptor.value
+    descriptor.value = async function (ctx: IContext) {
+      const { body } = await ctx.parseBody()
+
+      const { errors } = Schema(jsonSchema)(body)
+      if (errors?.length) throw new Error(errors.join(', '))
+      
+      return original.call(this, ctx)
+    }
+  }
+}
+
+//@instance(PersonsModel)
+@route('/api/persons')
+export default class PersonController extends Controller<PersonsModel> {
+  static model = PersonsModel
+
+  @post('')
   @auth()
   @access()
   async send(ctx: IContext) {
@@ -118,7 +143,22 @@ export default class PersonController extends Controller<PersonsModel> {
 
   }
 
-  @get('/ttt')
+  @post('/ttt')
+  @validateBody({
+    type: 'object',
+    properties: {
+      email: {
+        type: 'string',
+        format: 'email'
+      },
+      password: {
+        type: 'string'
+      }
+    },
+    required: ['email', 'password']
+  })
+
+
   async find(){
     return super.find()
   }

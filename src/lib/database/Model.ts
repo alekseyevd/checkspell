@@ -1,10 +1,15 @@
 import { DataBase } from "."
 
+export interface IModel {
+  [key: string]: any,
+  findAll(params: any): Promise<any>
+}
+
 export type Entity = {
   [key: string]: string | number | Date | null | Array<any>
 }
 
-export class Model<T extends Entity> {
+export class Model<T extends Entity> implements IModel  {
   static table: string
   db: DataBase
 
