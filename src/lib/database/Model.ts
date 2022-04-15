@@ -2,7 +2,6 @@ import { DataBase } from "."
 
 export interface IModel {
   [key: string]: any,
-  findAll(params: any): Promise<any>
 }
 
 export type Entity = {

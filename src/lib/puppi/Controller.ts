@@ -1,4 +1,3 @@
-import PersonsModel from "../../components/directories/persons/models/Person";
 import { controllerRoutes } from "../../components/directories/persons/services/globals";
 import IRoute from "../../interfaces/IRoute";
 import { getModel } from "../database";
@@ -7,8 +6,8 @@ import { Entity, IModel, Model } from "../database/Model";
 import { IContext } from "../http/Context";
 
 class Controller {
-  model?: Model<Entity>
-  constructor(model?: Class<Model<Entity>>) {
+  model?: IModel
+  constructor(model?: Class<IModel>) {
     if (model) this.model = getModel(model)
   }
 
@@ -21,18 +20,10 @@ class Controller {
       return r
     })
   }
-
-  // model(): T {
-  //   const c = this.constructor as any
-  //   return getModel(c.model) 
-  // }
 }
 
-export default class DirectoryController<T extends Model<Entity>> extends Controller {
-  // model(): T {
-  //   const c = this.constructor as any
-  //   return getModel(c.model) 
-  // }
+export default class Directory<T extends Model<Entity>> extends Controller {
+
   model: T
 
   constructor(model: Class<T>) {
@@ -40,11 +31,14 @@ export default class DirectoryController<T extends Model<Entity>> extends Contro
     this.model = getModel(model)
   }
 
-  async find() {
+  async findAll(): Promise<Entity[]> {
     return this.model.findAll()
   }
 
-  async findOne() {}
+  async findById(ctx: IContext) {
+    const id = +ctx.query.id
+    return this.model.findById(id)
+  }
 
   async create() {}
 
@@ -53,18 +47,3 @@ export default class DirectoryController<T extends Model<Entity>> extends Contro
   async delete() {}
 }
 
-export class PersonController extends DirectoryController<PersonsModel> {
-  constructor() {
-    super(PersonsModel)
-  }
-
-  async find(){
-    return super.find()
-  }
-
-  async send(ctx: IContext) {
-    console.log('send', ctx.get('user'));
-    return this.model.findAll()
-
-  }
-}
