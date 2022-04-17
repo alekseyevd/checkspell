@@ -1,32 +1,8 @@
 import { IContext } from "../../../../lib/http/Context";
-import Directory from "../../../../lib/puppi/Controller";
+import { get, route, methods, del, auth } from "../../../../lib/puppi/decorators";
+import Directory from "../../../../lib/puppi/Directory";
+import { _routes } from "../../../../lib/puppi/_global";
 import PersonsModel from "../models/Person";
-
-function get(route: string) {
-  return function(target: any, prop: string, descriptor: PropertyDescriptor): void {
-    console.log('method', target.constructor.name);
-    if (!target.constructor.routes) {
-      target.constructor.routes = []
-    }
-    target.constructor.routes.push({
-      method: 'get',
-      path: route,
-      handler: prop
-    })
-  }
-}
-
-function route(path: string) {
-  return function(constructor: any): void {
-    if (!constructor.routes) {
-      constructor.routes = []
-    }
-    constructor.routes = constructor.routes.map((r: any) => {
-      r.path = path + r.path
-      return r
-    })
-  }
-}
 
 @route('/api/persons')
 export class PersonController extends Directory<PersonsModel> {
@@ -34,11 +10,13 @@ export class PersonController extends Directory<PersonsModel> {
     super(PersonsModel)
   }
 
-  @get('/')
-  async findAll(){
-    return super.findAll()
+  @get()
+  @auth()
+  async findAll(ctx: IContext){
+    return super.findAll(ctx)
   }
 
+  @del()
   async findById(ctx: IContext){
     return super.findById(ctx)
   }

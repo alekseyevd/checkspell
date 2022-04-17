@@ -39,7 +39,7 @@ export default class Cursor {
     return this
   }
 
-  async exec(values: string[] | undefined = undefined) {
+  async exec(values: string[] | undefined = undefined): Promise<Array<any>> {
     const { table, whereClause, orderBy, limitClause, offsetClause } = this;
     const fields = this.fields.join(', ');
     let sql = `SELECT ${fields} FROM ${table}`;

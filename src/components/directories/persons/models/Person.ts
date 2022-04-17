@@ -14,7 +14,7 @@ export interface Person extends Entity {
 
 @table('persons')
 export default class PersonsModel extends Model<Person> {
-  async findByEmail() {    
+  async findByEmail(): Promise<Array<Person>>{    
     return this.db.select(['*'])
       .from(this.table)
       .exec()

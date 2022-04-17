@@ -21,9 +21,11 @@ function instance<T>(Model: T) {
 
 class Controller<T extends Model<Entity>> {
   static model: Class<any>
-  // constructor(model: Class<T>) {
-  //   //this.model = getModel(model)
-  // }
+  current: number
+  constructor() {
+    //this.model = getModel(model)
+    this.current = 0
+  }
 
   getRoutes() {
     console.log(controllerRoutes[this.constructor.name]);
@@ -84,8 +86,7 @@ function auth() {
     const original = descriptor.value
     descriptor.value = function (ctx: IContext) {
       if (!ctx.headers.authorization) throw new Error('auth err')
-      ctx.set('user', 'sfdfsfsds')
-      console.log('auth', ctx.get('user'));
+      ctx.set('user', 'authorized')
       
       return original.call(this, ctx)
     }
@@ -135,11 +136,13 @@ export default class PersonController extends Controller<PersonsModel> {
   static model = PersonsModel
 
   @post('')
-  @auth()
-  @access()
+  // @auth()
+  // @access()
   async send(ctx: IContext) {
     console.log('send', ctx.get('user'));
-    return this.model.findAll()
+
+    return super.find()
+    //return this.model.findAll()
 
   }
 

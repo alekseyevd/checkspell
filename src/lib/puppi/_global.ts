@@ -1,0 +1,1 @@
+export const _routes: { [k: string]: any} = {}

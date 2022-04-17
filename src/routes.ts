@@ -4,15 +4,18 @@ import { Schema } from './lib/validation/validate'
 import testRoute from './routes/testRoute'
 import { AuthStratagy } from './services/authentication'
 import auth from './components/users/routes'
-import PersonController from './components/directories/persons/services/PersonController'
-import PersonsModel from './components/directories/persons/models/Person'
+import {PersonController} from './components/directories/persons/services/controller'
+
+const r= new PersonController().routes
+console.log('r', r);
+
 
 const routes: Array<IRoute> = [
   ...auth,
   // { method: 'get', path: '/', action: mainRoute},
   // // { method: 'post', path: '/api/v1/', action: fileuploadRoute },
   // // { method: 'get', path: '/output/', action: outputRoute },
-  ...new PersonController().getRoutes(),
+  ...r,
   { method: 'get', path: '/pub/{*}', action: testRoute },
   new Route({
     path: '/test/{id}',
