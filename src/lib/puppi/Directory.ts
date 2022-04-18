@@ -5,16 +5,16 @@ import Controller from "./Controller"
 
 export default class Directory<T extends Model<Entity>> extends Controller {
 
-  modelClass: Class<T>
+  model: T
 
-  constructor(modelClass: Class<T>) {
+  constructor(model: Class<T>) {
     super()
-    this.modelClass = modelClass
+    this.model = getModel(model)
   }
 
-  get model(): T {
-    return getModel(this.modelClass)
-  }
+  // get model(): T {
+  //   return getModel(this.modelClass)
+  // }
 
   async findAll(ctx: IContext): Promise<Entity[]> {
     console.log(ctx.get('user'));
