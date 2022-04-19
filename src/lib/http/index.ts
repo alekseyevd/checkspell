@@ -8,7 +8,6 @@ import { IContext } from './Context'
 import HttpError from './HttpError'
 
 type HttpServerOptions = {
-  port: number,
   routes?: Array<IRoute>,
   static?: { dir: string, cache?: number },
 }
@@ -18,7 +17,6 @@ export default class HttpServer {
   private _matching: Array<any> = []
   private _server: Server
   private _static?: FileServer
-  private port: number
 
   constructor(params: HttpServerOptions) {
     this._routes = {}
@@ -42,8 +40,6 @@ export default class HttpServer {
         }
       })
     }
-
-    this.port = params.port
 
     this._static = params.static ? new FileServer(params.static) : undefined
 
@@ -151,8 +147,8 @@ export default class HttpServer {
     }
   }
 
-  public listen(cb: () => void) {
-    this._server.listen(this.port, cb)
+  public listen(port: number, cb: () => void) {
+    this._server.listen(port, cb)
   }
 
   private bodyParser(req: IncomingMessage, args: any): Promise<any> {
