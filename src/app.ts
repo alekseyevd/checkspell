@@ -15,8 +15,7 @@ class App {
     // to do validateConfig(config)
     this._db = new DataBase().pool
     this._server = new HttpServer({
-      routes,
-      port: config.PORT,
+      routes
       // static: {
       //   dir: path.join(__dirname, './public'),
       // },
@@ -35,7 +34,7 @@ class App {
       await this.db.connect()
       console.info('Подключение успешно');
       
-      this.server.listen(() => {
+      this.server.listen(config.PORT, () => {
         console.log(`Server listening on port ${config.PORT}`)
       })
     } catch (error) {
