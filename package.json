@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "formidable": "^1.2.2",
+    "hashids": "^2.2.10",
     "pg": "^8.7.3",
     "safe-regex": "^2.1.1"
   }
