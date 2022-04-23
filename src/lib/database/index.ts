@@ -8,9 +8,9 @@ export { table } from './table'
 export { getModel } from './getModel'
 
 export function query(sql: string) {
-  return DataBase.instance.pool.query(sql)
+  return DataBase.instance._pool.query(sql)
 }
 
 export function select(fields: Array<string>) {
-  return new Cursor({ fields }, DataBase.instance.pool)
+  return new Cursor({ fields }, DataBase.instance._pool)
 }

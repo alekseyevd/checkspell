@@ -1,110 +1,78 @@
 import PersonsModel from "../../components/directories/persons/models/Person";
-import HttpServer from "../http";
 import Controller from "./Controller";
 import { _routes } from "./_global";
-
-const global: { [k: string]: any } = {}
-
-interface IService {
-  constructor: Function
-  init: Function
-}
+import { global } from './global'
+import { resolve } from "./decorators";
 
 interface Class<T> {
   new(...args: any[]): T;
 }
 
-class App {
-  _modules: Array<Class<Module>>
-  _services: Array<Class<any>>
-  _routes: Array<any> = []
-  _server?: HttpServer
+export default class Module {
 
-  constructor(params: any) {
-    this._modules = params.modules
-    this._services = params.services
-  }
-
-  init() {
-    this.initServices()
-    this.initModules()
-    this.initHttpServer()
-  }
-
-  initServices() {
-    //to-do save to global container
-    this._services.forEach(S => {
-      global[S.name] = new S()
-    })
-  }
-
-  initModules() {
-    this._modules.forEach(M => {
-      const module = new M()
-      module.init()
-      this._routes = this._routes.concat(module.routes)
-    })
-  }
-
-  initHttpServer() {
-    this._server = new HttpServer({
-      routes: this._routes
-    })
-  }
-
-  listen(port: number) {
-    this._server?.listen(port, () => console.log('server started'))
-  }
-
-  static get(serviceName: Class<any>) {
-    return global[serviceName.name]
-  }
-}
-
-class Module {
-  controllers: Array<Class<Controller>>
-  models: Array<Class<any>>
   routes: Array<any> = []
 
-  constructor(params: any) {
-    this.controllers = params.controllers
-    this.models = params.models
-  }
+  constructor(private controllers: Array<Class<Controller>>) {}
 
   init() {
-    this.initModels()
     this.initControllers()
     this.prepare()
   }
 
   prepare() {}
 
-  initModels() {
-    this.models.forEach(S => {
-      global[S.name] = new S()
-    })
-  }
-
   initControllers() {
-    for (let C of this.controllers) {
-      const controller = new C()
-      const routes = _routes[C.name].map((r: any) => {
+    // for (let C of this.controllers) {
+    //   const controller = new C()
+    //   const routes = _routes[C.name].map((r: any) => {
 
-        r.action = controller.constructor.prototype[r.handler].bind(controller)
-        return r
-      })
-      this.routes = this.routes.concat(routes)
+    //     r.action = controller.constructor.prototype[r.handler].bind(controller)
+    //     return r
+    //   })
+    //   this.routes = this.routes.concat(routes)
+    // }
+    for (let C of this.controllers) {
+      //const controller = new C()
+      //console.log(controller.routes);
+      const controller = resolve<any>(C)
+
+      this.routes = this.routes.concat(controller.routes)
     }
   }
 }
 
-class MyClass {
-  constructor(@inject(PersonsModel) public model: PersonsModel) {}
+// class MyClass {
+//   constructor(@inject(PersonsModel) public model: PersonsModel) {}
 
-  test() {
-    console.log(this.model);
+//   test() {
+//     console.log(this.model);
     
+//   }
+// }
+
+function module(props: any) {
+  return function<K extends {new (...args: any[]): {}}> (Constructor: K) {
+    return class extends Constructor {
+      constructor(...args: any) {
+        super(props.controllers)
+      }
+    }
   }
+}
+
+@module({
+  controllers: []
+})
+export class AUthModule extends Module {
+  prepare() {}
+}
+
+class Auth extends Module {
+  constructor() {
+    super([])
+  }
+
+  async prepare() {}
 }
 
 function inject(param: Class<any>) {
@@ -113,12 +81,4 @@ function inject(param: Class<any>) {
     if (!global[param.name]) throw new Error('not registered')
     target[methodKey] = global[param.name];
   }
-  
 }
-
-const app = new App({
-  services: [PersonsModel],
-  modules: []
-})
-app.init()
-app.listen(5000)

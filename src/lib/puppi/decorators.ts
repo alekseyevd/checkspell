@@ -1,5 +1,8 @@
+import { Class } from "../database/getModel"
 import { IContext } from "../http/Context"
 import { _routes } from "./_global"
+import { global } from './global'
+import 'reflect-metadata'
 
 export function get(route: string = '') {
   return function(target: any, prop: string, descriptor: PropertyDescriptor): void {
@@ -58,15 +61,40 @@ export const methods = {
   delete: del
 }
 
+// export function route(path: string) {
+//   return function(constructor: any): void {
+//     if (!_routes[constructor.name]) {
+//       _routes[constructor.name] = []
+//     }
+//     _routes[constructor.name] = _routes[constructor.name].map((r: any) => {
+//       r.path = path + r.path
+//       return r
+//     })
+//   }
+// }
+
 export function route(path: string) {
-  return function(constructor: any): void {
-    if (!_routes[constructor.name]) {
-      _routes[constructor.name] = []
+  return function <K extends {new (...args: any[]): {}}> (Constructor: K) {
+    if (!_routes[Constructor.name]) {
+      _routes[Constructor.name] = []
     }
-    _routes[constructor.name] = _routes[constructor.name].map((r: any) => {
+    const routes = _routes[Constructor.name].map((r: any) => {
       r.path = path + r.path
       return r
     })
+    return class extends Constructor {
+      constructor(...args: any) {
+        super(...args)
+      }
+
+      get routes() {
+        return routes.map((r: any) => {
+          const key = r.handler as string
+          r.action = this.constructor.prototype[key].bind(this)
+          return r
+        })
+      }
+    }
   }
 }
 
@@ -80,4 +108,39 @@ export function auth() {
       return original.call(this, ctx)
     }
   }
+}
+
+export function module(props: any) {
+  return function<K extends {new (...args: any[]): {}}> (Constructor: K) {
+    return class extends Constructor {
+      constructor(...args: any) {
+        super(props.controllers)
+      }
+    }
+  }
+}
+
+export function inject(target: any, propertyKey: string, h: number) {
+
+    
+    //if (!global[param.name]) global[param.name] = new param()
+    console.log(target);
+    const key = Reflect.getOwnMetadata('design:paramtypes', target)
+    console.log(key);
+    // key.forEach((k: any) => {
+    //   target.constructor.prototype[propertyKey] = 
+    // })
+    
+   // target.constructor.prototype[propertyKey] = global[param.name];
+  
+}
+export function resolve<T>(target: Class<any>): T {
+  // tokens are required dependencies, while injections are resolved tokens from the Injector
+  let tokens = Reflect.getMetadata('design:paramtypes', target) || []
+  
+  let injections = tokens.map((token: any) => new token);
+  console.log(injections);
+  
+  
+  return new target(...injections);
 }

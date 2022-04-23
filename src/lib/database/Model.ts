@@ -14,7 +14,7 @@ export class Model<T extends Entity> implements IModel  {
 
   constructor(name: string) {
     this.table = name
-    this.db = DataBase.instance
+    this.db = DataBase.instance || new DataBase()
   }
 
   // get table() {

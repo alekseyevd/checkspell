@@ -7,15 +7,27 @@ import { _routes } from "./_global";
 
 export default class Controller {
 
+  constructor(private _routes: Array<any>) {
+    this._routes = _routes
+  }
+
   get routes(): IRoute[] {
   
-    return _routes[this.constructor.name].map((r: any) => {
+    return this._routes.map((r: any) => {
       const key = r.handler as string
       r.action = this.constructor.prototype[key].bind(this)
       return r
     })
   }
-}
 
+  // get routes(): IRoute[] {
+  
+  //   return _routes[this.constructor.name].map((r: any) => {
+  //     const key = r.handler as string
+  //     r.action = this.constructor.prototype[key].bind(this)
+  //     return r
+  //   })
+  // }
+}
 
 
