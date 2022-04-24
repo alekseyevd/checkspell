@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import { Class } from "../database/getModel"
 import { IContext } from "../http/Context"
+import { Schema } from '../validation/validate'
 import { _routes } from "./_global"
 
 
@@ -117,9 +118,11 @@ export function module(props: any) {
   }
 }
 
-export function inject(prop: any) {
-  return function (target: any, prop: any, t: any) {
-    console.log(t);
+const config: { [k: string]: [number, boolean] } = {}
+
+export function inject(prop: boolean) {
+  return function (target: any, _: any, t: number) {
+    config[target.name] = [t, prop]
   }
 }
 
@@ -136,4 +139,18 @@ export function resolve<T>(target: Class<any>): T {
 
   injections[target.name] = new target(...injections)
   return injections[target.name]
+}
+
+export function Body(jsonSchema: any) {
+  return function(target: any, prop: string, descriptor: PropertyDescriptor): void {
+    const original = descriptor.value
+    descriptor.value = async function (ctx: IContext) {
+      const { body } = await ctx.parseBody()
+
+      const { errors } = Schema(jsonSchema)(body)
+      if (errors?.length) throw new Error(errors.join(', '))
+      
+      return original.call(this, ctx)
+    }
+  }
 }

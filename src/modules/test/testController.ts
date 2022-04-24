@@ -5,7 +5,7 @@ import { auth, Get, inject, route } from "../../lib/puppi/decorators";
 @route('/test')
 export default class TestController {
 
-  constructor(@inject('rrr') private model: PersonsModel) {}
+  constructor(private model: PersonsModel) {}
 
   @Get()
   @auth()

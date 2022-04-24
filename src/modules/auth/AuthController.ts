@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import UserModel from "../../components/users/models/User";
 import { IContext } from "../../lib/http/Context";
-import { Get, Post, route } from "../../lib/puppi/decorators";
+import { Body, Get, Post, route } from "../../lib/puppi/decorators";
 import HttpError from "../../lib/http/HttpError";
 import IErrnoException from "../../interfaces/IErrnoException";
 import jwt from '../../lib/jwt';
@@ -14,6 +14,19 @@ export default class AuthController {
   constructor(private model: UserModel, private sessionModel: SessionModel) {}
 
   @Post('/register')
+  @Body({
+    type: 'object',
+    properties: {
+      password: {
+        type: 'string'
+      },
+      email: {
+        type: 'string',
+        format: 'email'
+      }
+    },
+    required: ['password', 'email']
+  })
   async register(ctx: IContext) {
     var salt = crypto.randomBytes(128).toString('base64')
     var hmac = crypto.createHmac('sha256', salt);
