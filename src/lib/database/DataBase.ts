@@ -12,8 +12,13 @@ export class DataBase {
   constructor() {
     if (DataBase.instance) return DataBase.instance
     this._pool = new Pool()
-    this._pool.connect()
     DataBase.instance = this
+  }
+
+  async init() {
+    console.log('подключаюсь к pg');
+    const client = await this._pool.connect()
+    console.log('подключение успешно');
   }
 
   static getInstance() {

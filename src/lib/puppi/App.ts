@@ -1,41 +1,54 @@
 import HttpServer from "../http";
 import Module from "./Module";
-import { global } from './global'
+
 
 interface Class<T> {
   new(...args: any[]): T;
 }
 
+interface IService {
+  init(): Promise<void>
+}
+
+const Services: { [k: string]: IService } = {}
+
 export default class App {
   _modules: Array<Class<Module>>
-  _services?: Array<Class<any>>
+  _services?: Array<Class<IService>>
   _routes: Array<any> = []
-  _server?: HttpServer
+  _server!: HttpServer
 
   constructor(params: any) {
     this._modules = params.modules
     this._services = params.services
   }
 
-  init() {
-    this.initServices()
-    this.initModules()
+  async init() {
+    await this.initServices()
+    await this.initModules()
     this.initHttpServer()
   }
 
-  initServices() {
-    //to-do save to global container
-    this._services?.forEach(S => {
-      global[S.name] = new S()
-    })
+  async initServices() {
+    if (this._services) {
+      // сделать последовательно ?
+      console.log('инициализация сервисов');
+      
+      await Promise.all(this._services.map(S => {
+        Services[S.name] = new S()
+        return Services[S.name]
+      }).map(s => s.init()))
+    }
   }
 
-  initModules() {
-    this._modules.forEach(M => {
-      const module = new M()
-      module.init()
-      this._routes = this._routes.concat(module.routes)
-    })
+  async initModules() {
+
+    for (const Module of this._modules) {
+      const module = new Module()
+      await module.prepare()
+      this._routes.push(...module.getRoutes())
+    }
+    
   }
 
   initHttpServer() {
@@ -45,10 +58,10 @@ export default class App {
   }
 
   listen(port: number) {
-    this._server?.listen(port, () => console.log('server started'))
+    this._server.listen(port, () => console.log('server started'))
   }
 
   static get(serviceName: Class<any>) {
-    return global[serviceName.name]
+    return Services[serviceName.name]
   }
 }

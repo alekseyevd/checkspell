@@ -2,7 +2,8 @@
 
 import { DataBase } from "./lib/database";
 import App from "./lib/puppi/App";
-import { TestModule } from "./modules/module";
+import { AuthModule } from "./modules/auth/AuthModule";
+import { TestModule } from "./modules/test/module";
 
 // app.start()
 
@@ -19,8 +20,10 @@ const app = new App({
     DataBase 
   ],
   modules: [
+    AuthModule,
     TestModule
   ]
 })
-app.init()
-app.listen(5000)
+app
+  .init()
+  .then(() => app.listen(5000))

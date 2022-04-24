@@ -1,5 +1,5 @@
-import { module } from "../lib/puppi/decorators";
-import Module from "../lib/puppi/Module";
+import { module } from "../../lib/puppi/decorators";
+import Module from "../../lib/puppi/Module";
 import TestController from "./testController";
 
 @module({
@@ -8,5 +8,5 @@ import TestController from "./testController";
   ]
 })
 export class TestModule extends Module {
-  prepare() {}
+  async prepare() {}
 }

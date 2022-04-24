@@ -1,1 +1,1 @@
-export const _routes: { [k: string]: any} = {}
+export const _routes: { [controllerName: string]: Array<any>} = {}

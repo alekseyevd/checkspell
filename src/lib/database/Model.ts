@@ -9,18 +9,19 @@ export type Entity = {
 }
 
 export class Model<T extends Entity> implements IModel  {
-  table: string
-  db: DataBase
+  private _db: DataBase
 
-  constructor(name: string) {
-    this.table = name
-    this.db = DataBase.instance || new DataBase()
+  constructor(private _table: string) {
+    this._db = new DataBase()
   }
 
-  // get table() {
-  //   const c = this.constructor as any
-  //   return c.table
-  // }
+  get db() { 
+    return this._db
+  }
+
+  get table() {
+    return this._table
+  }
 
   async findAll(params: any = {}): Promise<T[]> {
     return await this.db.select(params.fields)

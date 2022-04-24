@@ -1,1 +1,0 @@
-export const global: { [k: string]: any } = {}
