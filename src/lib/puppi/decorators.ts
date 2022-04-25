@@ -146,7 +146,7 @@ export function Body(jsonSchema: any) {
     const original = descriptor.value
     descriptor.value = async function (ctx: IContext) {
       const { body } = await ctx.parseBody()
-
+      
       const { errors } = Schema(jsonSchema)(body)
       if (errors?.length) throw new Error(errors.join(', '))
       

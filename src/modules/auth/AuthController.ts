@@ -33,7 +33,7 @@ export default class AuthController {
     const {
       password,
       email,
-    } = (await ctx.parseBody()).body
+    } = ctx.body
     const hashedPwd = hmac.update(password).digest('hex');
   
     const model = this.model
@@ -60,6 +60,19 @@ export default class AuthController {
   }
 
   @Post('/login')
+  @Body({
+    type: 'object',
+    properties: {
+      password: {
+        type: 'string'
+      },
+      email: {
+        type: 'string',
+        format: 'email'
+      }
+    },
+    required: ['password', 'email']
+  })
   async login(ctx: IContext) {
     const app_token = ctx.headers['app_token'] as string
     if (!app_token) throw new HttpError(400, 'bad request (invalid app_token)')
@@ -90,5 +103,39 @@ export default class AuthController {
       exp: session.expired_at
     }, JWTSECRET)
     return { token: access_token, refresh }
+  }
+
+  async refresh(ctx: IContext) {
+    const app_token = ctx.headers.authorization?.split('Bearer ')[1]
+    if (!app_token) throw new HttpError(401, 'Unauthorized')
+
+    const ip = ctx.req.socket.remoteAddress
+    const refresh = ctx.query.token
+
+    try {
+      const { id } = jwt.verify(refresh, JWTSECRET)
+      if (!id) throw new HttpError(401, 'invalid token')
+
+      const session = await this.sessionModel.updateSession(id, app_token, ip)
+      if (!session) throw new HttpError(401, 'invalid app_token')
+
+      const user = await this.model.findById(session.user_id)
+      const access_token = jwt.sign({
+        user: {
+          id: user.id,
+          email: user.email
+        }
+      }, JWTSECRET, 15 * 60000)
+
+      const newRefresh = jwt.sign({
+        id: session.id,
+        exp: session.expired_at
+      }, JWTSECRET)
+
+      return { token: access_token, refresh: newRefresh }
+    } catch (error) {
+      if (error instanceof JWTError) throw new HttpError(401, 'invalid token')
+      throw error
+    }
   }
 }
