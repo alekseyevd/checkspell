@@ -154,3 +154,19 @@ export function Body(jsonSchema: any) {
     }
   }
 }
+
+export function QueryParams(jsonSchema: any) {
+  return function(target: any, prop: string, descriptor: PropertyDescriptor): void {
+    const original = descriptor.value
+    descriptor.value = async function (ctx: IContext) {
+      const { query } = ctx
+      console.log(query);
+      
+      
+      const { errors } = Schema(jsonSchema)(query)
+      if (errors?.length) throw new Error(errors.join(', '))
+      
+      return original.call(this, ctx)
+    }
+  }
+}
