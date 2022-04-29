@@ -12,7 +12,7 @@ export class Model<T extends Entity> implements IModel  {
   private _db: DataBase
 
   constructor(private _table: string) {
-    this._db = new DataBase()
+    this._db = DataBase.getInstance()
   }
 
   get db() { 

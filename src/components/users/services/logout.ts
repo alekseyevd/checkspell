@@ -5,7 +5,7 @@ import HttpError from "../../../lib/http/HttpError";
 import jwt from "../../../lib/jwt";
 import Route from "../../../lib/puppi/Route";
 import { Schema } from "../../../lib/validation/validate";
-import SessionModel from "../models/Session";
+import SessionModel from "../../../modules/auth/models/Session";
 
 async function logout(ctx: IContext) {
   const token = ctx.body.token

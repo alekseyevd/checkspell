@@ -1,6 +1,6 @@
 import crypto from 'crypto'
-import SessionModel from "../../../components/users/models/Session";
-import UserModel from "../../../components/users/models/User";
+import SessionModel from "../models/Session";
+import UserModel from "../models/User";
 import { JWTSECRET } from '../../../config';
 import IErrnoException from '../../../interfaces/IErrnoException';
 import HttpError from '../../../lib/http/HttpError';

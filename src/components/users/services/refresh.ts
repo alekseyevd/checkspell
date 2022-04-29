@@ -5,8 +5,8 @@ import HttpError from "../../../lib/http/HttpError"
 import jwt, { JWTError } from "../../../lib/jwt"
 import Route from "../../../lib/puppi/Route"
 import { Schema } from "../../../lib/validation/validate"
-import SessionModel from "../models/Session"
-import UserModel from "../models/User"
+import SessionModel from "../../../modules/auth/models/Session"
+import UserModel from "../../../modules/auth/models/User"
 
 async function refresh(ctx: IContext) {
   const app_token = ctx.headers.authorization?.split('Bearer ')[1]

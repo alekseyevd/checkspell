@@ -1,4 +1,4 @@
-import UserModel from '../components/users/models/User';
+import UserModel from '../modules/auth/models/User';
 import { getModel } from '../lib/database';
 import { IContext } from '../lib/http/Context';
 

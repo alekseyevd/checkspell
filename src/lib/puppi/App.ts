@@ -10,7 +10,7 @@ interface IService {
   init(): Promise<void>
 }
 
-const Services: { [k: string]: IService } = {}
+const Services: { [k: string]: any } = {}
 
 export default class App {
   _modules: Array<Class<Module>>
@@ -61,7 +61,7 @@ export default class App {
     this._server.listen(port, () => console.log('server started'))
   }
 
-  static get(serviceName: Class<any>) {
+  static get<T>(serviceName: Class<T>): T {
     return Services[serviceName.name]
   }
 }

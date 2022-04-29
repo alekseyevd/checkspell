@@ -4,8 +4,8 @@ import { getModel } from '../../../lib/database';
 import { IContext } from '../../../lib/http/Context';
 import Route from '../../../lib/puppi/Route';
 import { Schema } from '../../../lib/validation/validate';
-import { User } from '../models/User';
-import UserModel from '../models/User';
+import { User } from '../../../modules/auth/models/User';
+import UserModel from '../../../modules/auth/models/User';
 import IErrnoException from '../../../interfaces/IErrnoException';
 import HttpError from '../../../lib/http/HttpError';
 

@@ -7,8 +7,8 @@ import HttpError from '../../../lib/http/HttpError';
 import jwt from "../../../lib/jwt";
 import Route from '../../../lib/puppi/Route';
 import { Schema } from '../../../lib/validation/validate';
-import SessionModel from '../models/Session';
-import UserModel from '../models/User';
+import SessionModel from '../../../modules/auth/models/Session';
+import UserModel from '../../../modules/auth/models/User';
 
 const body = Schema({
   type: 'object',
