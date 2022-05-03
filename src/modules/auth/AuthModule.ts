@@ -5,32 +5,20 @@ import fs from 'fs'
 import path from 'path'
 
 function runMigrations(_path: string) {
-  const files: Array<any> = []
-
-  fs.readdir(_path, (err, files) => {
-    if(err) throw err;
-
-    const _files: Array<any> = []
-
-    for (let file of files){
-      fs.stat(path.join(_path, file), (errStat, status) => {
-        if(errStat) throw errStat;
-
-        if(status.isDirectory()){
-            //console.log('Папка: ' + file);
-            runMigrations(path.join(_path, file)); // продолжаем рекурсию
-        }else{
-            //console.log('Файл: ' + file);
-            if (/\.sql$/.test(file)) {
-              _files.push(file)
-            }
-        }
-      });
+  let _files: Array<any> = []
+  const files = fs.readdirSync(_path)
+  files.forEach(file => {
+    const stat = fs.statSync(path.join(_path, file))
+    if (stat.isDirectory()) {
+      const result = runMigrations(path.join(_path, file))
+      _files = _files.concat(result)
+    } else {
+      if (/\.up.sql$/.test(file)) {
+        _files.push(file)
+      }
     }
-
-  });
-   
-   
+  })
+  return _files.sort()
 }
 
 @module({
@@ -40,6 +28,8 @@ function runMigrations(_path: string) {
 })
 export class AuthModule extends Module {
   async prepare(): Promise<void> {
-    runMigrations(path.join(__dirname, './migrations/'))
+    const f = runMigrations(path.join(__dirname, './migrations/'))
+    console.log(f);
+    
   }
 }
