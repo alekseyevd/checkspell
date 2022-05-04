@@ -58,7 +58,7 @@ export default class App {
   }
 
   listen(port: number) {
-    this._server.listen(port, () => console.log('server started'))
+    this._server.listen(port, () => console.log(`server started on port ${port}`))
   }
 
   static get<T>(serviceName: Class<T>): T {

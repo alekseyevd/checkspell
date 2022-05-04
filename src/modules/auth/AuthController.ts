@@ -7,7 +7,7 @@ import AuthService from './services/AuthService';
 export default class AuthController {
 
   constructor(
-    private readonly authService: AuthService,
+    private authService: AuthService,
   ) {}
 
   @Post('/register')
@@ -25,7 +25,7 @@ export default class AuthController {
     required: ['password', 'email']
   })
   register(ctx: IContext) {
-    const { email, password } = ctx.query
+    const { email, password } = ctx.body
     return this.authService.register(email, password)
   }
 

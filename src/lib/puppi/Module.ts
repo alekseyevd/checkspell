@@ -14,7 +14,7 @@ export default class Module {
   getRoutes () {
     const routes = this.controllers.map(C => {
       const controller = resolve<any>(C)
-      return controller.routes
+      return controller.routes as any
     })
     return [].concat(...routes)
   }

@@ -5,11 +5,13 @@ import { JWTSECRET } from '../../../config';
 import IErrnoException from '../../../interfaces/IErrnoException';
 import HttpError from '../../../lib/http/HttpError';
 import jwt, { JWTError } from '../../../lib/jwt';
+import { injectable } from '../../../lib/puppi/decorators';
 
+@injectable
 export default class AuthService {
   constructor(
-    private readonly userModel: UserModel,
-    private readonly sessionModel: SessionModel
+    private userModel: UserModel,
+    private sessionModel: SessionModel
   ) {}
 
   async register(email: string, password: string) {
@@ -19,6 +21,8 @@ export default class AuthService {
     const hashedPwd = hmac.update(password).digest('hex');
   
     const model = this.userModel
+    console.log(model);
+    
     const entity = model.create()
    
     try {

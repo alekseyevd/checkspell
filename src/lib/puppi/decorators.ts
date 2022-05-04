@@ -81,6 +81,7 @@ export function route(path: string) {
       r.path = path + r.path
       return r
     }) || []
+
     return class extends Constructor {
       constructor(...args: any) {
         super(...args)
@@ -133,12 +134,30 @@ export function resolve<T>(target: Class<any>): T {
   let tokens = Reflect.getMetadata('design:paramtypes', target) || []
 
   //console.log(Reflect.getOwnMetadata(target))
-  
-  let injections = tokens.map((token: any) => resolve<any>(token))
-  if (injections[target.name]) return injections[target.name]
 
-  injections[target.name] = new target(...injections)
-  return injections[target.name]
+  let injections = tokens.map((token: any) => resolve<Class<any>>(token))
+  console.log(injections);
+  
+  const instance = new target(...injections)
+  //console.log(instance);
+  
+  return instance
+
+  // if (injections[target.name]) return injections[target.name]
+
+  // injections[target.name] = new target(...injections)
+  // return injections[target.name]
+}
+
+export function injectable<K extends {new (...args: any[]): {}}> (Constructor: K) {
+  let tokens = Reflect.getMetadata('design:paramtypes', Constructor) || []
+
+  //let injections = tokens.map((token: any) => resolve<Class<any>>(token))
+  return class extends Constructor {
+    constructor(...args: any) {
+      super(...tokens)
+    }
+  }
 }
 
 export function Body(jsonSchema: any) {
