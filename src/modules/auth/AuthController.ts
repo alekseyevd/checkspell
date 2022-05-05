@@ -47,7 +47,7 @@ export default class AuthController {
     const app_token = ctx.headers['app_token'] as string
     if (!app_token) throw new HttpError(400, 'bad request (invalid app_token)')
 
-    const { email, password } = ctx.query
+    const { email, password } = ctx.body
     const ip = ctx.req.socket.remoteAddress || ''
     const user_agent = ctx.headers['user-agent'] || ''
 

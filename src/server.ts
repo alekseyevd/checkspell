@@ -21,7 +21,7 @@ const app = new App({
   ],
   modules: [
     AuthModule,
-    TestModule
+    //TestModule
   ]
 })
 app

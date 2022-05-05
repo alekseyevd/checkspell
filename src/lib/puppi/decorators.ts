@@ -133,10 +133,11 @@ export function resolve<T>(target: Class<any>): T {
   // tokens are required dependencies, while injections are resolved tokens from the Injector
   let tokens = Reflect.getMetadata('design:paramtypes', target) || []
 
-  //console.log(Reflect.getOwnMetadata(target))
-
+  //console.log('target', target);
+  //console.log('tokens', tokens);
+  
   let injections = tokens.map((token: any) => resolve<Class<any>>(token))
-  console.log(injections);
+  //console.log(injections);
   
   const instance = new target(...injections)
   //console.log(instance);
@@ -152,10 +153,10 @@ export function resolve<T>(target: Class<any>): T {
 export function injectable<K extends {new (...args: any[]): {}}> (Constructor: K) {
   let tokens = Reflect.getMetadata('design:paramtypes', Constructor) || []
 
-  //let injections = tokens.map((token: any) => resolve<Class<any>>(token))
+  let injections = tokens.map((token: any) => resolve<Class<any>>(token))
   return class extends Constructor {
     constructor(...args: any) {
-      super(...tokens)
+      super(...injections)
     }
   }
 }
