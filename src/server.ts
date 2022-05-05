@@ -3,6 +3,7 @@
 import { DataBase } from "./lib/database";
 import App from "./lib/puppi/App";
 import { AuthModule } from "./modules/auth/AuthModule";
+import { DirectoryModule } from "./modules/directories/DirectoryModule";
 import { TestModule } from "./modules/test/module";
 
 // app.start()
@@ -21,6 +22,7 @@ const app = new App({
   ],
   modules: [
     AuthModule,
+    DirectoryModule
     //TestModule
   ]
 })

@@ -3,7 +3,7 @@ import { Class } from "../../../../lib/database/getModel";
 import { IContext } from "../../../../lib/http/Context";
 import Route from "../../../../lib/puppi/Route";
 import { Schema } from "../../../../lib/validation/validate";
-import PersonsModel from "../models/Person";
+import PersonsModel from "../../../../modules/directories/models/Person";
 import { controllerRoutes, routes } from "./globals";
 
 function instance<T>(Model: T) {

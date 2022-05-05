@@ -21,8 +21,6 @@ export default class AuthService {
     const hashedPwd = hmac.update(password).digest('hex');
   
     const model = this.userModel
-    console.log(model);
-    
     const entity = model.create()
    
     try {

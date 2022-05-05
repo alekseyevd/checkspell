@@ -1,4 +1,4 @@
-import PersonsModel from "../../components/directories/persons/models/Person";
+import PersonsModel from "../directories/models/Person";
 import { IContext } from "../../lib/http/Context";
 import { auth, Get, inject, route } from "../../lib/puppi/decorators";
 

@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import pg from 'pg'
 import 'dotenv/config'
+import { exit } from 'process'
 
 function findFiles(_path: string) {
   let _files: Array<any> = []
@@ -24,14 +25,18 @@ function findFiles(_path: string) {
 }
 
 async function runMigrations() {
+  
   const _pg = new pg.Pool()
   const files = findFiles(path.join(__dirname, '../modules'))
   const names = files.map(file => file.name)
 
   const client = await _pg.connect()
-  const { rows } = await client.query(`SELECT * FROM migrations WHERE filename in ($1)`, names)
+
+  
+  const { rows } = await client.query(`SELECT * FROM migrations`)
 
   const _files = files.filter(file => !rows.some(row => row.filename === file.name))
+  
   if (_files.length) {
     try {
       await client.query('BEGIN')
@@ -45,7 +50,8 @@ async function runMigrations() {
       await client.query('COMMIT')
     } catch (e) {
       await client.query('ROLLBACK')
-      throw e
+      console.log(e);
+      exit(1)
     } finally {
       client.release()
     }
@@ -54,6 +60,3 @@ async function runMigrations() {
 }
 
 runMigrations()
-
-
- 

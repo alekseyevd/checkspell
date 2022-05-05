@@ -1,4 +1,4 @@
-import { Entity, Model, table } from "../../../../lib/database";
+import { Entity, Model, table } from "../../../lib/database";
 
 export interface Person extends Entity {
   id: number

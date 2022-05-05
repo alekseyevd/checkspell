@@ -2,7 +2,7 @@ import { IContext } from "../../../../lib/http/Context";
 import { get, route, methods, del, auth } from "../../../../lib/puppi/decorators";
 import Directory from "../../../../lib/puppi/Directory";
 import { _routes } from "../../../../lib/puppi/_global";
-import PersonsModel from "../models/Person";
+import PersonsModel from "../../../../modules/directories/models/Person";
 
 @route('/api/persons')
 export class PersonController extends Directory<PersonsModel> {
