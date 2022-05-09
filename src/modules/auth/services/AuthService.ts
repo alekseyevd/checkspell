@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import SessionModel from "../models/Session";
-import UserModel from "../models/User";
+import UserModel, { User } from "../models/User";
 import { JWTSECRET } from '../../../config';
 import IErrnoException from '../../../interfaces/IErrnoException';
 import HttpError from '../../../lib/http/HttpError';
@@ -87,7 +87,7 @@ export default class AuthService {
       const session = await this.sessionModel.updateSession(id, app_token, ip)
       if (!session) throw new HttpError(401, 'invalid app_token')
 
-      const user = await this.userModel.findById(session.user_id)
+      const user = await this.userModel.findById(session.user_id) as User
       const access_token = jwt.sign({
         user: {
           id: user.id,

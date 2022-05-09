@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Entity } from "./Model";
 
 export default class Update {
   private _db: Pool
@@ -11,8 +12,11 @@ export default class Update {
     this._db = db
   }
 
-  set(values: string[]) {
-    this.values = values.join(', ')
+  set(params: Entity) {
+    this.values = Object.keys(params)
+      .map(key => `${key} = '${params[key]}'`)
+      .join(', ')
+
     return this
   }
 
@@ -26,9 +30,12 @@ export default class Update {
     if (this.condition) {
       sql += ` WHERE ${this.condition}` 
     }
-    sql += ` RETURNING *;`
+    sql += `;`
 
-    const { rows } = await this._db.query(sql)
-    return rows
+    console.log(sql);
+    
+    const res = await this._db.query(sql)
+    
+    return res.rowCount
   }
 }

@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import { Class } from "../database/getModel"
 import { IContext } from "../http/Context"
+import HttpError from '../http/HttpError'
 import { Schema } from '../validation/validate'
 import { _routes } from "./_global"
 
@@ -168,8 +169,7 @@ export function Body(jsonSchema: any) {
       const { body } = await ctx.parseBody()
       
       const { errors } = Schema(jsonSchema)(body)
-      if (errors?.length) throw new Error(errors.join(', '))
-      
+      if (errors?.length) throw new HttpError(400, errors.join(', '))
       return original.call(this, ctx)
     }
   }

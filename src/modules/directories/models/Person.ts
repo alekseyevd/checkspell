@@ -7,9 +7,9 @@ export interface Person extends Entity {
   surname: string
   middlename: string | null
   birth_date: Date | null
-  sex: 'male' | 'female'
-  email: string
-  phone: string[]
+  sex: 'male' | 'female' | null
+  email: string | null
+  phone: string[] | null
 }
 
 @table('persons')

@@ -23,18 +23,26 @@ export class Model<T extends Entity> implements IModel  {
     return this._table
   }
 
-  async findAll(params: any = {}): Promise<T[]> {
-    return await this.db.select(params.fields)
+  find(params: any = {}): Promise<T[]> {
+    return this.db.select(params.fields)
       .from(this.table)
-      .where(params.where)
+      .where(params.filter)
       .limit(params.limit)
+      .offset(params.skip)
       .exec()
   }
 
-  async findById(id: number): Promise<T> {
+  async count() {
+    const [res] = await this.find({
+      fields: ['count(*)']
+    })
+    return res.count as number
+  }
+
+  async findById(id: number | string): Promise<T | undefined> {
     const result = await this.db.select(['*'])
       .from(this.table)
-      .where(`id = ${id}`)
+      .where(`id = '${id}'`)
       .limit(1)
       .exec()
     return result[0]
@@ -44,8 +52,8 @@ export class Model<T extends Entity> implements IModel  {
     return {} as T
   }
 
-  async save(params: T): Promise<T> {
-    return await this.db
+  save(params: T): Promise<T> {
+    return this.db
       .insert()
       .into(this.table)
       .values(params)
@@ -57,6 +65,14 @@ export class Model<T extends Entity> implements IModel  {
     
     // const { rows } = await this.db.query(sql)
     // return rows[0]
+  }
+
+  update(params: T, filter: string): Promise<number> {
+    return this.db
+      .update(this.table)
+      .set(params)
+      .where(filter)
+      .exec()
   }
 }
 

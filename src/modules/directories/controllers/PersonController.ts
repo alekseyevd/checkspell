@@ -1,17 +1,44 @@
 import PersonsModel from "../models/Person";
-import { Entity, Model } from "../../../lib/database";
 import { IContext } from "../../../lib/http/Context";
-import { Delete, Get, Post, Put, route } from "../../../lib/puppi/decorators";
+import { Body, Delete, Get, Post, Put, route } from "../../../lib/puppi/decorators";
+import Directory from "./Directory";
 
-class Directory {
-  model!: Model<Entity>
-
-  async findAll(ctx: IContext): Promise<Entity[]> {
-    console.log(ctx.get('user'));
-    
-    return this.model.findAll()
-  }
+const PersonSchema = {
+  type: 'object',
+  properties: {
+    user_id: {
+      type: 'string'
+    },
+    name: {
+      type: 'string',
+    },     
+    surname: {
+      type: 'string'
+    },
+    middle_name: {
+      type: 'string'
+    },
+    birth_date: {
+      type: 'date'
+    },
+    sex: {
+      type: 'string',
+      enum: [ 'male', 'female'],
+    },
+    email: {
+      type: 'string',
+      format: 'email'
+    },
+    phone: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    },
+  },
+  required: ['name', 'surname']
 }
+
 
 @route('/persons')
 export default class PersonsController extends Directory {
@@ -26,24 +53,24 @@ export default class PersonsController extends Directory {
 
   @Get('/{id}')
   getOne(ctx: IContext) {
-    //TODO
-    console.log(ctx.params);
-    return 5
+    return this.findOne(ctx)
   }
 
   @Post()
-  create(ctx: IContext) {
-    //TODO
+  @Body(PersonSchema)
+  async create(ctx: IContext) {
+    return super.create(ctx)
   }
 
   @Put('/{id}')
+  @Body(PersonSchema)
   update(ctx: IContext) {
-    //TODO
+    return super.update(ctx)
   }
 
-  @Delete()
+  @Delete('/{id}')
   delete(ctx: IContext) {
-    //TODO
+    return super.delete(ctx)
   }
 
 }

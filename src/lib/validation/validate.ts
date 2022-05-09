@@ -1,7 +1,7 @@
 import { validators } from "./validators"
 
 
-export default function validate(schema: any, value: any, prop: string = 'value'): { result: boolean, errors?: Array<string>} { 
+export default function validate(schema: any, value: any, prop: string = ''): { result: boolean, errors?: Array<string>} { 
   let errors: Array<string> =  []
   switch (schema.type) {
     case 'object':
@@ -46,6 +46,10 @@ export default function validate(schema: any, value: any, prop: string = 'value'
       }
       if (schema.maxLength && value.length > schema.maxLength) {
         errors.push(`length of poperty '${prop}' must be not greater than ${schema.maxLength} chars`)
+        break
+      }
+      if (schema.enum && Array.isArray(schema.enum) && !schema.enum.includes(value)) {
+        errors.push(`poperty '${prop}' must be one of [${schema.enum.join(', ')}]`)
         break
       }
       if (schema.format) {

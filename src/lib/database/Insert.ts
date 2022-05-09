@@ -18,12 +18,18 @@ export class Insert {
 
   values(params: Entity) {
     this.fields = Object.keys(params).join(', ')
-    this._values = Object.values(params).map(v => `'${v}'`).join(', ')
+    this._values = Object.values(params).map(v => {
+      if (Array.isArray(v)){
+        return `ARRAY [${v.map(k => `'${k}'`)}]`
+      }
+      return `'${v}'`
+    }).join(', ')
     return this
   }
 
   async exec() {
     let sql = `INSERT INTO ${this.table} (${this.fields}) VALUES (${this._values}) RETURNING *;`
+    console.log(sql);
     const { rows } = await this._db.query(sql)
     return rows[0]
   }
