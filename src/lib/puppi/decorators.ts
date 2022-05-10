@@ -110,6 +110,15 @@ export function auth() {
   }
 }
 
+export function AuthStratagy(strategy: string) {
+  return function(target: any, prop: string, descriptor: PropertyDescriptor): void {
+    const original = descriptor.value
+    descriptor.value = (ctx: IContext) => {
+      
+    } 
+  }
+}
+
 export function module(props: any) {
   return function<K extends {new (...args: any[]): {}}> (Constructor: K) {
     return class extends Constructor {
