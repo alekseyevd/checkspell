@@ -43,7 +43,7 @@ export default class Directory {
     if (!rowCount) throw new HttpError(404, 'not found')
 
     ctx.res.statusCode = 204
-    ctx.res.statusMessage = 'resource updated successfully'
+    ctx.res.statusMessage = 'Updated successfully'
   }
 
   async delete (ctx: IContext) {
@@ -53,6 +53,6 @@ export default class Directory {
     if (!res.rowCount) throw new HttpError(404, 'not found')
 
     ctx.res.statusCode = 204
-    ctx.res.statusMessage = 'resource deleted successfully'
+    ctx.res.statusMessage = 'Deleted successfully'
   }
 }

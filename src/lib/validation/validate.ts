@@ -60,6 +60,13 @@ export default function validate(schema: any, value: any, prop: string = ''): { 
           }
         }
       }
+
+      if (schema.pattern) {
+        const result = new RegExp(schema.pattern).test(value)
+        if(!result) {
+          errors.push(`property '${prop}' should match pattern '${schema.pattern}'`)
+        }
+      }
       break
 
     case 'integer':

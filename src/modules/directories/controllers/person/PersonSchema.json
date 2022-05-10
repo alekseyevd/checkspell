@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },     
+    "surname": {
+      "type": "string"
+    },
+    "middle_name": {
+      "type": "string"
+    },
+    "birth_date": {
+      "type": "date"
+    },
+    "sex": {
+      "type": "string",
+      "enum": [ "male", "female"]
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "phone": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["name", "surname"],
+  "additionalProperties": false
+}

@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "fullname": {
+      "type": "string"
+    },     
+    "shortname": {
+      "type": "string"
+    },
+    "inn": {
+      "type": "string",
+      "maxLength": 12,
+      "pattern": "[0-9]{10,12}"
+    },
+    "kpp": {
+      "type": "string",
+      "maxLength": 9,
+      "pattern": "[0-9]{9}"
+    },
+    "ogrn": {
+      "type": "string",
+      "maxLength": 13,
+      "pattern": "[0-9]{13}"
+    },
+    "address": {
+      "type": "string"
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
+}

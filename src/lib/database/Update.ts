@@ -14,7 +14,13 @@ export default class Update {
 
   set(params: Entity) {
     this.values = Object.keys(params)
-      .map(key => `${key} = '${params[key]}'`)
+      .map(key => {
+        if (Array.isArray(params[key])) {
+          const v = params[key] as Array<any>
+          return `${key} = ARRAY [${v.map(k => `'${k}'`)}]`
+        }
+        return `${key} = '${params[key]}'`
+      })
       .join(', ')
 
     return this
