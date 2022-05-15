@@ -55,7 +55,7 @@ export default class Cursor {
     if (offsetClause) {
       sql += ` OFFSET ${offsetClause}`
     }
-    console.log(sql);
+    console.log(`${sql} [${values?.join(', ')}]`);
     
     const { rows } = await this._db.query(sql, values)
     return rows

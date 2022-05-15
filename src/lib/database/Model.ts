@@ -42,9 +42,9 @@ export class Model<T extends Entity> implements IModel  {
   async findById(id: number | string): Promise<T | undefined> {
     const result = await this.db.select(['*'])
       .from(this.table)
-      .where(`id = '${id}'`)
+      .where(`id = $1`)
       .limit(1)
-      .exec()
+      .exec([`${id}`])
     return result[0]
   }
 

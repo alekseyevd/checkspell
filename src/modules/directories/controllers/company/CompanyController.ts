@@ -15,7 +15,7 @@ export default class CompanyController extends Directory {
     return super.findAll(ctx)
   }
 
-  @Get('/{id')
+  @Get('/{id}')
   getOne(ctx: IContext) {
     return super.findOne(ctx)
   }
